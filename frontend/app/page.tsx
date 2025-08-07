@@ -135,8 +135,8 @@ export default function HomePage() {
             </div>
             
             <div className="grid md:grid-cols-3 gap-6 mb-6">
-              {recentFiles.map((file) => (
-                <div key={file.file_id} className="glass rounded-xl p-6 modern-shadow hover:scale-105 transition-all duration-300 group">
+              {recentFiles.map((file: any) => (
+                <div key={file.file_id} className="glass rounded-xl p-6 modern-shadow group">
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
                       <div className="p-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
@@ -186,7 +186,7 @@ export default function HomePage() {
         )}
 
         {/* Statistics */}
-        <div className="glass rounded-2xl p-8 modern-shadow hover-lift">
+        <div className="glass rounded-2xl p-8 modern-shadow">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -227,7 +227,7 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <div className="text-center">
-          <div className="glass rounded-2xl p-12 modern-shadow hover-lift">
+          <div className="glass rounded-2xl p-12 modern-shadow">
             <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-8">
               <Sparkles className="h-12 w-12 gradient-text" />
             </div>
