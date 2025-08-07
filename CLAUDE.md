@@ -41,12 +41,20 @@ uv run black .
 uv run ruff check .
 uv run mypy .
 
+# バックグラウンドタスク関連
+uv run dramatiq app.background.tasks                    # Dramatiqワーカーの起動
+uv run python -m app.background.scheduler               # タスクスケジューラーの起動
+
 # Docker Compose経由でのバックエンド操作（推奨）
 docker compose exec backend uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 docker compose exec backend uv run pytest
 docker compose exec backend uv run black .
 docker compose exec backend uv run ruff check .
 docker compose exec backend uv run mypy .
+
+# Docker Compose経由でのバックグラウンドタスク操作
+docker compose exec dramatiq-worker uv run dramatiq app.background.tasks
+docker compose exec task-scheduler uv run python -m app.background.scheduler
 ```
 
 ### フロントエンド（Next.js/TypeScript）
@@ -321,10 +329,30 @@ async def set_file_invalidated(file_id: str):
 - ダミーデータやモックデータは作成せず、必要に応じて適切なローディング状態やエラーハンドリングを実装してください
 - ユーザーエクスペリエンスを向上させるため、実データに基づいた適切なフォールバック表示を提供してください
 
+## バックグラウンドタスク
+
+期限切れファイルの自動クリーンアップシステムが実装されています：
+
+### 実装内容
+- **Dramatiq**: バックグラウンドタスク処理ライブラリ
+- **APScheduler**: 定期タスクのスケジューリング
+- **Redis**: タスクキューとして使用
+
+### 自動実行されるタスク
+1. **期限切れファイルのストレージクリーンアップ** (1時間ごと)
+   - 有効期限切れのファイルをR2ストレージから削除
+   - DBレコードは保持し、`isInvalidated`フラグを`true`に設定
+   
+2. **期限切れアップロードセッションのクリーンアップ** (30分ごと)
+   - 未完了の期限切れアップロードセッションを削除
+   - 関連するチャンクファイルもストレージから削除
+
+### サービス構成
+- `dramatiq-worker`: タスクを実際に実行するワーカープロセス
+- `task-scheduler`: 定期タスクをスケジュールするプロセス
+
 ## TODO
 - サインアップとサインインが同じ関数処理になっているので処理を分ける
-
 - username, passwordの変更
-- ファイル削除用の定期実行パッチ
 - deploy
 - ファイルの無効化

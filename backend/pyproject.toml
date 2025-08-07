@@ -22,7 +22,6 @@ dependencies = [
     "aioboto3>=12.1.0",
     # Redis
     "redis>=5.0.1",
-    "celery>=5.3.4",
     # 環境変数
     "python-dotenv>=1.0.0",
     # ユーティリティ
@@ -30,6 +29,8 @@ dependencies = [
     "pydantic>=2.5.3",
     "pydantic-settings>=2.1.0",
     "python-dateutil>=2.8.2",
+    "dramatiq[redis,watch]>=1.18.0",
+    "apscheduler>=3.10.4",
 ]
 
 [project.optional-dependencies]
