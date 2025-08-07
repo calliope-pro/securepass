@@ -103,12 +103,72 @@ docker-compose up -d       # PostgreSQL + Redis + バックエンド + フロン
 
 ## 環境設定
 
-必要な環境変数:
+### 環境変数の基本ルール
+
+**Next.js環境変数の重要な違い**:
+
+1. **`NEXT_PUBLIC_`プレフィックス付き**:
+   - クライアント側（ブラウザ）で利用可能
+   - ビルド時にJavaScriptバンドルに埋め込まれる
+   - Reactコンポーネント、Context、フックで使用可能
+   - 例: `process.env.NEXT_PUBLIC_AUTH0_DOMAIN!`
+
+2. **`NEXT_PUBLIC_`プレフィックスなし**:
+   - サーバー側のみで利用可能
+   - API Routes、middleware、getServerSideProps等で使用
+   - クライアント側では`undefined`
+   - 例: `process.env.DATABASE_URL!`
+
+**重要な注意点**:
+- 環境変数は必ず `process.env.VARIABLE_NAME!` の形式で呼び出すこと（TypeScript非null演算子使用）
+- フォールバック値（`||` 演算子）は使わず、必要な環境変数は明示的に設定すること
+- Dockerビルド時にクライアント側環境変数を利用するには、DockerfileでARG/ENV宣言が必要
+
+### Docker環境での環境変数設定
+
+**フロントエンドDockerfile**:
+```dockerfile
+# ビルド時に必要な環境変数を宣言
+ARG NEXT_PUBLIC_AUTH0_DOMAIN
+ARG NEXT_PUBLIC_AUTH0_CLIENT_ID
+ARG NEXT_PUBLIC_AUTH0_AUDIENCE
+ARG NEXT_PUBLIC_API_URL
+
+# 環境変数として設定
+ENV NEXT_PUBLIC_AUTH0_DOMAIN=$NEXT_PUBLIC_AUTH0_DOMAIN
+ENV NEXT_PUBLIC_AUTH0_CLIENT_ID=$NEXT_PUBLIC_AUTH0_CLIENT_ID
+ENV NEXT_PUBLIC_AUTH0_AUDIENCE=$NEXT_PUBLIC_AUTH0_AUDIENCE
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+RUN yarn build
+```
+
+### 必要な環境変数一覧
+
+**バックエンド（サーバー側のみ）**:
 - `DATABASE_URL`: PostgreSQL接続文字列
 - `REDIS_URL`: Redis接続文字列  
-- `R2_*`: Cloudflare R2認証情報とバケット
+- `R2_ENDPOINT`: Cloudflare R2エンドポイント
+- `R2_ACCESS_KEY_ID`: R2アクセスキー
+- `R2_SECRET_ACCESS_KEY`: R2シークレットキー
+- `R2_BUCKET_NAME`: R2バケット名
 - `SECRET_KEY`: JWT署名キー
 - `IP_HASH_SALT`: IPアドレスハッシュ化用ソルト
+- `AUTH0_DOMAIN`: Auth0ドメイン（サーバー側検証用）
+- `AUTH0_AUDIENCE`: Auth0オーディエンス（サーバー側検証用）
+
+**フロントエンド（クライアント側で利用）**:
+- `NEXT_PUBLIC_AUTH0_DOMAIN`: Auth0ドメイン（ブラウザでの認証用）
+- `NEXT_PUBLIC_AUTH0_CLIENT_ID`: Auth0クライアントID
+- `NEXT_PUBLIC_AUTH0_AUDIENCE`: Auth0オーディエンス（APIスコープ）
+- `NEXT_PUBLIC_API_URL`: バックエンドAPIのベースURL
+
+### デプロイ時の注意点
+
+**Railway等のプラットフォーム**:
+1. ビルド時とランタイム両方で環境変数が利用可能である必要がある
+2. `NEXT_PUBLIC_`変数はビルド時に埋め込まれるため、デプロイ環境で正しく設定されていることを確認
+3. 環境変数設定後は必ず再デプロイを実行すること
 
 ## データベース操作
 
