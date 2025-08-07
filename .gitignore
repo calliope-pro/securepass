@@ -1,3 +1,6 @@
+# .claude
+.claude/settings.local.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -7,8 +10,6 @@ __pycache__/
 venv/
 env/
 *.env
-.env.*
-!.env.example
 .venv/
 
 # uv
