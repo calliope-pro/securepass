@@ -86,6 +86,8 @@ class AuthService:
             
             # JWTトークンを検証・デコード
             logger.info("Decoding JWT token...")
+            logger.info(f"Expected audience: {self.auth0_audience}")
+            logger.info(f"Expected issuer: https://{self.auth0_domain}/")
             payload = jwt.decode(
                 token,
                 rsa_key,
