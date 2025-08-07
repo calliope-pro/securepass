@@ -95,18 +95,18 @@ export default function HomePage() {
           </div>
 
           {/* Feature badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 font-medium">
             <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-gray-700">Zero-Knowledge暗号化</span>
+              <span className="text-gray-600">Zero-Knowledge暗号化</span>
             </div>
             <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <Eye className="h-4 w-4 text-blue-500" />
-              <span className="text-gray-700">完全匿名</span>
+              <span className="text-gray-600">完全匿名</span>
             </div>
             <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <Zap className="h-4 w-4 text-purple-500" />
-              <span className="text-gray-700">超高速</span>
+              <span className="text-gray-600">超高速</span>
             </div>
           </div>
         </div>

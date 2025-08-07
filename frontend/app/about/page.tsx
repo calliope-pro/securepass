@@ -38,22 +38,25 @@ export default function AboutPage() {
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
             <Sparkles className="h-12 w-12 gradient-text" />
           </div>
-          <h1 className="text-5xl font-black gradient-text mb-6">
+          <h1 className="text-6xl font-black gradient-text">
             SecurePassの使い方
           </h1>
-          <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <h2 className="text-3xl font-bold text-gray-900 max-w-4xl mx-auto leading-tight">
             世界最高レベルのセキュリティで、シンプルで安全なファイル共有を実現
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            5つの簡単ステップで、プロレベルのセキュリティでファイル共有を開始
           </p>
-          <div className="flex items-center justify-center space-x-8 text-sm text-gray-600 font-medium">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 font-medium">
+            <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <Shield className="h-4 w-4 text-green-500" />
               <span>Zero-Knowledge暗号化</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <Users className="h-4 w-4 text-blue-500" />
               <span>完全匿名</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
               <Zap className="h-4 w-4 text-purple-500" />
               <span>超高速</span>
             </div>
@@ -89,7 +92,7 @@ export default function AboutPage() {
                     
                     {/* Content */}
                     <div className="flex-1 flex flex-col space-y-3">
-                      <h3 className="text-lg font-bold text-gray-900">
+                      <h3 className="text-xl font-bold text-gray-900">
                         {step.title}
                       </h3>
                       <p className="text-sm text-gray-600 leading-relaxed flex-1 flex items-center justify-center">
@@ -232,17 +235,17 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <div className="glass rounded-2xl p-8 modern-shadow">
-            <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-6">
-              <Sparkles className="h-8 w-8 gradient-text" />
+          <div className="glass rounded-2xl p-12 modern-shadow">
+            <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-8">
+              <Sparkles className="h-12 w-12 gradient-text" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">今すぐ始めよう</h3>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">今すぐ始めよう</h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               アカウント登録不要。数秒で世界最高レベルのセキュリティでファイル共有を開始できます。
             </p>
             <a
               href="/"
-              className="inline-flex items-center space-x-3 px-10 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               <Shield className="h-6 w-6" />
               <span>SecurePassを使ってみる</span>
