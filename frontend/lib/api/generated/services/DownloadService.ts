@@ -36,7 +36,7 @@ export class DownloadService {
      * 承認されたリクエストで復号化キーを取得
      *
      * - ファイルダウンロード後に呼び出す
-     * - 一度だけ取得可能にする等の制限を検討
+     * - 一度だけ取得可能
      * @param requestId
      * @returns any Successful Response
      * @throws ApiError

@@ -1,5 +1,5 @@
 # backend/app/api/v1/endpoints/download.py
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 from app.core.database import prisma
 from app.core.security import security
@@ -147,12 +147,12 @@ async def download_file(request_id: str, req: Request):
 
 
 @router.post("/{request_id}/decrypt-key", operation_id="get_decrypt_key")
-async def get_decrypt_key(request_id: str):
+async def get_decrypt_key(request_id: str, response: Response):
     """
     承認されたリクエストで復号化キーを取得
     
     - ファイルダウンロード後に呼び出す
-    - 一度だけ取得可能にする等の制限を検討
+    - 一度だけ取得可能
     """
     try:
         # リクエストを取得
@@ -174,8 +174,12 @@ async def get_decrypt_key(request_id: str):
                 detail="Request not approved"
             )
         
-        # TODO: 受信者用に暗号化された鍵を返す
-        # 現在は簡易的にファイルの encryptedKey を返す
+        logger.info(f"Decrypt key accessed for request {request_id}")
+        
+        # キャッシュ無効化ヘッダーを設定
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
         
         return {
             "encrypted_key": access_request.file.encryptedKey
