@@ -25,7 +25,7 @@ declare const process: {
   };
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL!
 console.log('API_URL configured as:', API_URL)
 OpenAPI.BASE = API_URL
 

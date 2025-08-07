@@ -79,7 +79,7 @@ export const Auth0Provider: React.FC<Auth0ProviderProps> = ({ children }) => {
         }
 
         // OpenAPI設定
-        OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL!
         
         // 認証状態をチェック
         const isAuth = await auth0Instance.isAuthenticated()
