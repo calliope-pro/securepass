@@ -91,7 +91,7 @@ function FilesPageContent() {
         {/* Hero Section */}
         <div className="text-center">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-            <FolderOpen className="h-12 w-12 gradient-text" />
+            <FolderOpen className="h-12 w-12 text-blue-600" />
           </div>
           <h1 className="text-5xl font-black gradient-text mb-4">ファイル管理</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">

@@ -78,7 +78,7 @@ export default function HomePage() {
         {/* Hero Section */}
         <div className="text-center space-y-8">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6 animate-pulse-slow">
-            <Shield className="h-16 w-16 gradient-text" />
+            <Shield className="h-16 w-16 text-blue-600" />
           </div>
           
           <div className="space-y-6">
@@ -115,7 +115,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <div className="inline-flex p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-4">
-              <Upload className="h-8 w-8 gradient-text" />
+              <Upload className="h-8 w-8 text-blue-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">今すぐファイルを共有</h2>
             <p className="text-gray-600">アカウント不要。数秒で世界最高レベルのセキュリティを開始</p>
@@ -128,7 +128,7 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-8">
               <div className="inline-flex p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full mb-4">
-                <Activity className="h-8 w-8 gradient-text" />
+                <Activity className="h-8 w-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">最近アップロードしたファイル</h2>
               <p className="text-gray-600">直近にアップロードされたファイルの確認と管理</p>
@@ -229,7 +229,7 @@ export default function HomePage() {
         <div className="text-center">
           <div className="glass rounded-2xl p-12 modern-shadow">
             <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-8">
-              <Sparkles className="h-12 w-12 gradient-text" />
+              <Sparkles className="h-12 w-12 text-yellow-600" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">使い方を詳しく知りたい？</h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">

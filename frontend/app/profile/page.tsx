@@ -28,7 +28,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
         <div className="glass rounded-2xl p-8 text-center modern-shadow">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">プロファイルを読み込み中...</p>
+          <p className="text-gray-600">アカウント情報を読み込み中...</p>
         </div>
       </div>
     )
@@ -43,7 +43,7 @@ export default function ProfilePage() {
               <Shield className="h-12 w-12 text-red-500" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">認証が必要です</h2>
-            <p className="text-gray-600 mb-6">プロファイルを表示するにはログインが必要です</p>
+            <p className="text-gray-600 mb-6">アカウント情報を表示するにはログインが必要です</p>
             <button
               onClick={() => window.location.href = '/'}
               className="inline-flex items-center space-x-2 px-6 py-3 animated-gradient text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300"
@@ -63,9 +63,9 @@ export default function ProfilePage() {
         {/* Hero Section */}
         <div className="text-center">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-            <User className="h-12 w-12 gradient-text" />
+            <User className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-5xl font-black gradient-text mb-4">プロファイル</h1>
+          <h1 className="text-5xl font-black gradient-text mb-4">アカウント情報</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             アカウント情報とセキュリティ設定
           </p>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
         <div className="glass rounded-2xl p-8 modern-shadow ">
           <div className="text-center mb-8">
             <div className="inline-flex p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-4">
-              <Settings className="h-6 w-6 gradient-text" />
+              <Settings className="h-6 w-6 text-gray-600" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">アカウント設定</h3>
             <p className="text-gray-600">セキュリティと連携オプション</p>
@@ -196,7 +196,7 @@ export default function ProfilePage() {
             {/* Pro Features CTA */}
             <div className="text-center">
               <div className="inline-flex p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full mb-6">
-                <Sparkles className="h-8 w-8 gradient-text" />
+                <Sparkles className="h-8 w-8 text-yellow-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">さらなるセキュリティ機能</h3>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">

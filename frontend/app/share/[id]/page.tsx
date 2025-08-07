@@ -82,7 +82,7 @@ export default function SharePage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-            <Shield className="h-12 w-12 gradient-text" />
+            <Shield className="h-12 w-12 text-blue-600" />
           </div>
           <h1 className="text-4xl font-black gradient-text mb-4">
             セキュアファイル共有
@@ -171,7 +171,7 @@ export default function SharePage() {
               <div className="glass rounded-2xl p-8 modern-shadow">
                 <div className="text-center mb-8">
                   <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-4">
-                    <Send className="h-8 w-8 gradient-text" />
+                    <Send className="h-8 w-8 text-blue-600" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
                     アクセスリクエスト

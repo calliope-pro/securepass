@@ -36,7 +36,7 @@ export default function AboutPage() {
         {/* Hero */}
         <div className="text-center space-y-8">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-            <Sparkles className="h-12 w-12 gradient-text" />
+            <Sparkles className="h-12 w-12 text-yellow-600" />
           </div>
           <h1 className="text-6xl font-black gradient-text">
             SecurePassの使い方
@@ -237,7 +237,7 @@ export default function AboutPage() {
         <div className="text-center">
           <div className="glass rounded-2xl p-12 modern-shadow">
             <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-8">
-              <Sparkles className="h-12 w-12 gradient-text" />
+              <Sparkles className="h-12 w-12 text-yellow-600" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">今すぐ始めよう</h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">

@@ -199,7 +199,7 @@ export default function FileDetailPage() {
             {/* Hero Section */}
             <div className="text-center mb-8">
               <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-                <FileText className="h-12 w-12 gradient-text" />
+                <FileText className="h-12 w-12 text-gray-600" />
               </div>
               <h1 className="text-4xl font-black gradient-text mb-4">{fileInfo.filename}</h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">

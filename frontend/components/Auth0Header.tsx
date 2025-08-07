@@ -91,7 +91,7 @@ export function Auth0Header() {
                         onClick={() => setShowUserMenu(false)}
                       >
                         <User className="h-4 w-4" />
-                        <span>プロファイル</span>
+                        <span>アカウント情報</span>
                       </Link>
                       <hr className="my-2 border-gray-200" />
                       <button
@@ -185,7 +185,7 @@ export function Auth0Header() {
                     onClick={() => setShowMobileMenu(false)}
                   >
                     <User className="h-5 w-5 text-blue-500" />
-                    <span className="font-medium text-gray-700">プロファイル</span>
+                    <span className="font-medium text-gray-700">アカウント情報</span>
                   </Link>
                   <button
                     onClick={() => {

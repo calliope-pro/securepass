@@ -26,7 +26,7 @@ const quickActions = [
   },
   {
     href: '/profile',
-    label: 'プロファイル設定',
+    label: 'アカウント情報',
     icon: Users,
     color: 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700',
     description: 'アカウント設定を変更'
@@ -105,7 +105,7 @@ export default function DashboardPage() {
         {/* Welcome Hero */}
         <div className="text-center">
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
-            <BarChart3 className="h-12 w-12 gradient-text" />
+            <BarChart3 className="h-12 w-12 text-purple-600" />
           </div>
           <h1 className="text-5xl font-black gradient-text mb-4">ダッシュボード</h1>
           <p className="text-xl text-gray-600">
@@ -330,7 +330,7 @@ export default function DashboardPage() {
         {/* Pro Features CTA */}
         <div className="glass rounded-2xl p-8 modern-shadow text-center">
           <div className="inline-flex p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full mb-6">
-            <Shield className="h-12 w-12 gradient-text" />
+            <Shield className="h-12 w-12 text-blue-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">さらに高度なセキュリティ機能</h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">

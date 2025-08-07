@@ -93,7 +93,7 @@ export default function DownloadPage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-full mb-6">
-            <Download className="h-12 w-12 gradient-text" />
+            <Download className="h-12 w-12 text-green-600" />
           </div>
           <h1 className="text-4xl font-black gradient-text mb-4">
             セキュアダウンロード
