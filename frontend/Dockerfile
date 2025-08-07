@@ -1,0 +1,25 @@
+# frontend/Dockerfile
+FROM node:24-alpine
+
+WORKDIR /app
+
+# gitをインストール
+RUN apk add --no-cache git
+
+# yarnをインストール
+RUN yarn set version stable
+
+# package.jsonとyarn.lockをコピー
+COPY package.json yarn.lock ./
+
+# 依存関係をインストール
+RUN yarn
+
+# アプリケーションコードをコピー
+COPY . .
+
+# ポート3000を公開
+EXPOSE 3000
+
+# 開発サーバーを起動
+CMD ["yarn", "dev"]

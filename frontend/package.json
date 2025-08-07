@@ -1,0 +1,42 @@
+{
+  "name": "securepass",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate-api": "openapi --input http://backend:8000/openapi.json --output ./lib/api/generated --client fetch"
+  },
+  "dependencies": {
+    "@auth0/auth0-spa-js": "^2.3.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.53.0",
+    "@tanstack/react-query": "^5.51.1",
+    "@tanstack/react-query-devtools": "^5.84.1",
+    "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.536.0",
+    "next": "15.0.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-dropzone": "^14.2.3",
+    "react-hot-toast": "^2.5.2",
+    "tailwind-merge": "^2.2.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@types/node": "^24.2.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.3",
+    "openapi-typescript-codegen": "^0.29.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

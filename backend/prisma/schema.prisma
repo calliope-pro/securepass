@@ -1,0 +1,115 @@
+// backend/prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = 5
+  interface            = "asyncio"
+}
+
+model User {
+  id        String   @id // Supabase Auth UUIDを使用
+  email     String   @unique
+  fullName  String?  @db.VarChar(100)
+  avatarUrl String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // ユーザーが所有するファイル
+  files     File[]
+  
+  @@index([email])
+  @@index([createdAt])
+}
+
+model File {
+  id             String   @id @default(uuid())
+  shareId        String   @unique @db.VarChar(12)
+  filename       String   @db.VarChar(255)
+  size           BigInt
+  mimeType       String   @db.VarChar(100)
+  encryptedKey   String   @db.Text // 暗号化された共有鍵
+  r2Key          String   @db.VarChar(255)
+  uploadStatus   String   @default("uploading") // uploading, completed, failed
+  chunkCount     Int      @default(0)
+  uploadedChunks Int      @default(0)
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+  maxDownloads   Int      @default(1)
+  
+  // ファイルの所有者（オプショナル - 匿名アップロードを許可）
+  userId         String?
+  
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  requests       AccessRequest[]
+  downloads      DownloadLog[]
+  chunks         FileChunk[]
+  
+  @@index([shareId])
+  @@index([createdAt])
+  @@index([uploadStatus])
+  @@index([userId])
+}
+
+model FileChunk {
+  id         String    @id @default(uuid())
+  fileId     String
+  chunkIndex Int
+  size       Int
+  r2Key      String    @db.VarChar(255)
+  uploadedAt DateTime?
+  
+  file       File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@unique([fileId, chunkIndex])
+  @@index([fileId])
+}
+
+model AccessRequest {
+  id         String    @id @default(uuid())
+  requestId  String    @unique @db.VarChar(12)
+  fileId     String
+  reason     String?   @db.Text
+  status     String    @default("pending") // pending, approved, rejected
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  createdAt  DateTime  @default(now())
+  ipHash     String    @db.VarChar(64) // SHA256(IP + Salt)
+  
+  file       File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  downloads  DownloadLog[]
+  
+  @@index([requestId])
+  @@index([fileId, status])
+  @@index([createdAt])
+}
+
+model DownloadLog {
+  id           String        @id @default(uuid())
+  fileId       String
+  requestId    String
+  downloadedAt DateTime      @default(now())
+  ipHash       String        @db.VarChar(64)
+  
+  file         File          @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  request      AccessRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  @@index([fileId])
+  @@index([requestId])
+}
+
+model UploadSession {
+  id         String   @id @default(uuid())
+  sessionKey String   @unique @db.VarChar(64)
+  fileId     String?
+  status     String   @default("active") // active, completed, expired
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  metadata   Json?    // チャンク情報など
+  
+  @@index([sessionKey])
+  @@index([status, expiresAt])
+}
