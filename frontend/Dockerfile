@@ -18,6 +18,8 @@ RUN yarn
 # アプリケーションコードをコピー
 COPY . .
 
+RUN yarn build
+
 # ポート3000を公開
 EXPOSE 3000
 
