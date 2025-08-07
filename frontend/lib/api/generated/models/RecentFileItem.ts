@@ -17,6 +17,7 @@ export type RecentFileItem = {
     max_downloads: number;
     download_count: number;
     request_count: number;
+    pending_request_count: number;
     status: FileStatus;
 };
 

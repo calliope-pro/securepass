@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery } from '@tanstack/react-query'
 import { FilesService, RecentFileItem } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload } from 'lucide-react'
+import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload, RefreshCw } from 'lucide-react'
 import { formatBytes } from '@/lib/utils'
 
 function FilesPageContent() {
@@ -19,12 +19,14 @@ function FilesPageContent() {
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
   const offset = (currentPage - 1) * limit
 
-  // ファイル一覧取得
-  const { data: filesData, isLoading: loading, error } = useQuery({
+  // ファイル一覧取得 (リアルタイム更新)
+  const { data: filesData, isLoading: loading, error, isFetching } = useQuery({
     queryKey: ['files', currentPage, limit],
     queryFn: () => FilesService.getRecentFiles(limit, offset),
     enabled: isAuthenticated,
-    staleTime: 30000,
+    staleTime: 5000, // 5秒間は新しいデータとして扱う
+    refetchInterval: 10000, // 10秒ごとにリアルタイム更新
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に更新
   })
 
   const files = filesData?.files || []
@@ -93,7 +95,15 @@ function FilesPageContent() {
           <div className="inline-flex p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-6">
             <FolderOpen className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-5xl font-black gradient-text mb-4">ファイル管理</h1>
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <h1 className="text-5xl font-black gradient-text">ファイル管理</h1>
+            {isFetching && !loading && (
+              <div className="flex items-center space-x-2 text-blue-600">
+                <RefreshCw className="h-5 w-5 animate-spin" />
+                <span className="text-sm font-medium">更新中...</span>
+              </div>
+            )}
+          </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             アップロードしたファイルを安全に管理・共有
           </p>
@@ -208,7 +218,14 @@ function FilesPageContent() {
                               <Eye className="h-4 w-4 text-orange-600" />
                             </div>
                             <div className="text-sm">
-                              <div className="font-bold text-gray-900">{file.request_count}</div>
+                              <div className="font-bold text-gray-900">
+                                {file.request_count}
+                                {file.pending_request_count > 0 && (
+                                  <span className="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded-full">
+                                    {file.pending_request_count}件待機
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-gray-500 text-xs">リクエスト</div>
                             </div>
                           </div>

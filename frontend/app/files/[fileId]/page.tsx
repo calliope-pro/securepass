@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { FilesService, RequestsService } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy } from 'lucide-react'
+import { FilesService, RequestsService, type AccessRequestItem } from '@/lib/api/generated'
+import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy, RefreshCw } from 'lucide-react'
 import { formatBytes, formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import ConfirmModal from '@/components/ConfirmModal'
@@ -24,20 +24,24 @@ export default function FileDetailPage() {
   }>({ isOpen: false, type: 'approve', requestId: '' })
   const queryClient = useQueryClient()
 
-  // ファイル情報を取得
+  // ファイル情報を取得 (リアルタイム更新)
   const { data: fileInfo, isLoading: fileLoading, error: fileError } = useQuery({
     queryKey: ['file-info', fileId],
     queryFn: () => FilesService.getFileInfo(fileId),
     enabled: isAuthenticated && !!fileId,
-    staleTime: 30000,
+    staleTime: 3000, // 3秒間は新しいデータとして扱う
+    refetchInterval: 3000, // 3秒ごとにリアルタイム更新
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に更新
   })
 
-  // アクセスリクエスト一覧を取得
-  const { data: requestsData, isLoading: requestsLoading, error: requestsError } = useQuery({
+  // アクセスリクエスト一覧を取得 (リアルタイム更新)
+  const { data: requestsData, isLoading: requestsLoading, error: requestsError, isFetching: requestsFetching } = useQuery({
     queryKey: ['file-requests', fileId],
     queryFn: () => RequestsService.getFileRequests(fileId),
     enabled: isAuthenticated && !!fileId,
-    staleTime: 10000, // リクエストはより頻繁に更新
+    staleTime: 3000, // 3秒間は新しいデータとして扱う
+    refetchInterval: 3000, // 3秒ごとにリアルタイム更新
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に更新
   })
 
   const requests = requestsData?.requests || []
@@ -111,7 +115,7 @@ export default function FileDetailPage() {
   }
 
   const handleCloseModal = () => {
-    setConfirmModal(prev => ({ ...prev, isOpen: false }))
+    setConfirmModal((prev) => ({ ...prev, isOpen: false }))
   }
 
 
@@ -300,7 +304,15 @@ export default function FileDetailPage() {
                   <div className="inline-flex p-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-full mb-4">
                     <Users className="h-6 w-6 text-orange-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">アクセスリクエスト</h2>
+                  <div className="flex items-center justify-center space-x-3 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900">アクセスリクエスト</h2>
+                    {requestsFetching && !requestsLoading && (
+                      <div className="flex items-center space-x-2 text-sm text-blue-600">
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <span>更新中...</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-gray-600">ファイルへのアクセスを要求しているユーザー一覧</p>
                 </div>
               </div>
@@ -316,7 +328,7 @@ export default function FileDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {requests.map((request) => {
+                    {requests.map((request: AccessRequestItem) => {
                       const statusInfo = getStatusInfo(request.status)
                       const StatusIcon = statusInfo.icon
 
@@ -391,7 +403,7 @@ export default function FileDetailPage() {
               onClose={handleCloseModal}
               onConfirm={handleConfirm}
               title={confirmModal.type === 'approve' ? 'リクエストを承認しますか？' : (
-                requests.find(r => r.request_id === confirmModal.requestId)?.status === 'approved' 
+                requests.find((r: AccessRequestItem) => r.request_id === confirmModal.requestId)?.status === 'approved' 
                   ? '承認を取り消しますか？' 
                   : 'リクエストを拒否しますか？'
               )}
@@ -400,7 +412,7 @@ export default function FileDetailPage() {
                   ? confirmModal.reason
                     ? `理由「${confirmModal.reason}」のアクセスリクエストを承認し、ファイルへのアクセスを許可します。`
                     : 'このアクセスリクエストを承認し、ファイルへのアクセスを許可します。'
-                  : requests.find(r => r.request_id === confirmModal.requestId)?.status === 'approved'
+                  : requests.find((r: AccessRequestItem) => r.request_id === confirmModal.requestId)?.status === 'approved'
                     ? confirmModal.reason
                       ? `理由「${confirmModal.reason}」で承認したアクセスリクエストを取り消し、ファイルへのアクセスを拒否します。`
                       : '承認したアクセスリクエストを取り消し、ファイルへのアクセスを拒否します。'
@@ -409,7 +421,7 @@ export default function FileDetailPage() {
                       : 'このアクセスリクエストを拒否します。'
               }
               confirmText={confirmModal.type === 'approve' ? '承認する' : (
-                requests.find(r => r.request_id === confirmModal.requestId)?.status === 'approved' 
+                requests.find((r: AccessRequestItem) => r.request_id === confirmModal.requestId)?.status === 'approved' 
                   ? '承認を取り消す' 
                   : '拒否する'
               )}

@@ -101,6 +101,7 @@ class RecentFileItem(BaseModel):
     max_downloads: int
     download_count: int
     request_count: int
+    pending_request_count: int
     status: FileStatus
 
 

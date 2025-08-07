@@ -370,9 +370,7 @@ async def get_recent_files(
             order={"createdAt": "desc"},  # 最新順
             include={
                 "downloads": True,
-                "requests": {  # accessRequests ではなく requests を使用
-                    "where": {"status": "pending"}
-                }
+                "requests": True  # 全てのリクエスト（pending, approved, rejected）をカウント
             }
         )
         
@@ -380,6 +378,10 @@ async def get_recent_files(
         
         result = []
         for file in files:
+            # 全リクエスト数とpendingリクエスト数を計算
+            all_requests = len(file.requests)
+            pending_requests = len([req for req in file.requests if req.status == "pending"])
+            
             item = RecentFileItem(
                 file_id=file.id,
                 share_id=file.shareId,
@@ -390,7 +392,8 @@ async def get_recent_files(
                 expires_at=file.expiresAt,
                 max_downloads=file.maxDownloads,
                 download_count=len(file.downloads),
-                request_count=len(file.requests),
+                request_count=all_requests,
+                pending_request_count=pending_requests,
                 status=FileStatus(file.uploadStatus)
             )
             result.append(item)
