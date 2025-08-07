@@ -6,6 +6,7 @@ import type { ChunkUploadRequest } from '../models/ChunkUploadRequest';
 import type { ChunkUploadResponse } from '../models/ChunkUploadResponse';
 import type { CompleteUploadRequest } from '../models/CompleteUploadRequest';
 import type { FileInfoResponse } from '../models/FileInfoResponse';
+import type { FileUpdateRequest } from '../models/FileUpdateRequest';
 import type { InitiateUploadRequest } from '../models/InitiateUploadRequest';
 import type { InitiateUploadResponse } from '../models/InitiateUploadResponse';
 import type { RecentFilesResponse } from '../models/RecentFilesResponse';
@@ -121,6 +122,31 @@ export class FilesService {
             path: {
                 'file_id': fileId,
             },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Update File
+     * ファイルを更新（現在は無効化のみ対応）
+     * @param fileId
+     * @param requestBody
+     * @returns FileInfoResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateFile(
+        fileId: string,
+        requestBody: FileUpdateRequest,
+    ): CancelablePromise<FileInfoResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/files/{file_id}',
+            path: {
+                'file_id': fileId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

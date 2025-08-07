@@ -9,7 +9,8 @@ from app.schemas.file import (
     FileInfoResponse,
     FileStatus,
     RecentFilesResponse,
-    RecentFileItem
+    RecentFileItem,
+    FileUpdateRequest
 )
 from app.schemas.auth import AuthUser
 from app.core.database import prisma
@@ -394,7 +395,8 @@ async def get_recent_files(
                 download_count=len(file.downloads),
                 request_count=all_requests,
                 pending_request_count=pending_requests,
-                status=FileStatus(file.uploadStatus)
+                status=FileStatus(file.uploadStatus),
+                is_invalidated=file.isInvalidated
             )
             result.append(item)
         
@@ -440,7 +442,8 @@ async def get_file_info(file_id: str) -> FileInfoResponse:
             created_at=file.createdAt,
             expires_at=file.expiresAt,
             max_downloads=file.maxDownloads,
-            download_count=len(file.downloads)
+            download_count=len(file.downloads),
+            is_invalidated=file.isInvalidated
         )
         
     except HTTPException:
@@ -450,4 +453,68 @@ async def get_file_info(file_id: str) -> FileInfoResponse:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get file info"
+        )
+
+
+@router.patch("/{file_id}", response_model=FileInfoResponse, operation_id="update_file")
+async def update_file(
+    file_id: str,
+    request: FileUpdateRequest,
+    current_user: AuthUser = Depends(require_auth)
+) -> FileInfoResponse:
+    """ファイルを更新（現在は無効化のみ対応）"""
+    try:
+        # ファイルを取得
+        file = await prisma.file.find_unique(
+            where={"id": file_id},
+            include={
+                "downloads": True
+            }
+        )
+        
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
+            )
+        
+        # ファイルの所有者であることを確認
+        if file.userId != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to update this file"
+            )
+        
+        # ファイルを更新
+        updated_file = await prisma.file.update(
+            where={"id": file_id},
+            data={
+                "isInvalidated": request.is_invalidated
+            },
+            include={
+                "downloads": True
+            }
+        )
+        
+        return FileInfoResponse(
+            file_id=updated_file.id,
+            share_id=updated_file.shareId,
+            filename=updated_file.filename,
+            size=updated_file.size,
+            mime_type=updated_file.mimeType,
+            status=FileStatus(updated_file.uploadStatus),
+            created_at=updated_file.createdAt,
+            expires_at=updated_file.expiresAt,
+            max_downloads=updated_file.maxDownloads,
+            download_count=len(updated_file.downloads),
+            is_invalidated=updated_file.isInvalidated
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update file: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update file"
         )

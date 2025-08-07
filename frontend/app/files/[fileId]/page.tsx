@@ -5,10 +5,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FilesService, RequestsService, type AccessRequestItem } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy, RefreshCw } from 'lucide-react'
+import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy, RefreshCw, ShieldOff, AlertTriangle } from 'lucide-react'
 import { formatBytes, formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import ConfirmModal from '@/components/ConfirmModal'
+import InvalidateFileButton from '@/components/InvalidateFileButton'
 
 export default function FileDetailPage() {
   const { fileId } = useParams<{ fileId: string }>()
@@ -287,13 +288,37 @@ export default function FileDetailPage() {
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   このURLを相手に送信して、ファイルへのアクセスリクエストを送ってもらいます
                 </p>
-                <button
-                  onClick={handleCopyShareUrl}
-                  className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  <Copy className="h-5 w-5" />
-                  <span>{shareUrlCopied ? 'コピーしました！' : '共有URLをコピー'}</span>
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                  <button
+                    onClick={handleCopyShareUrl}
+                    disabled={fileInfo.is_invalidated}
+                    className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    <Copy className="h-5 w-5" />
+                    <span>{shareUrlCopied ? 'コピーしました！' : '共有URLをコピー'}</span>
+                  </button>
+                  
+                  <InvalidateFileButton
+                    fileId={fileId}
+                    filename={fileInfo.filename}
+                    isInvalidated={fileInfo.is_invalidated}
+                  />
+                </div>
+                
+                {/* 無効化状態の警告 */}
+                {fileInfo.is_invalidated && (
+                  <div className="mt-6 mx-auto max-w-md">
+                    <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <div className="p-2 bg-red-100 rounded-full">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold text-red-900">ファイルが無効化されています</p>
+                        <p className="text-sm text-red-700">新しいアクセスリクエストは受け付けられません</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -306,12 +331,6 @@ export default function FileDetailPage() {
                   </div>
                   <div className="flex items-center justify-center space-x-3 mb-2">
                     <h2 className="text-2xl font-bold text-gray-900">アクセスリクエスト</h2>
-                    {requestsFetching && !requestsLoading && (
-                      <div className="flex items-center space-x-2 text-sm text-blue-600">
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                        <span>更新中...</span>
-                      </div>
-                    )}
                   </div>
                   <p className="text-gray-600">ファイルへのアクセスを要求しているユーザー一覧</p>
                 </div>

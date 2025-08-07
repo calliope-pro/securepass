@@ -73,6 +73,11 @@ class CompleteUploadRequest(BaseModel):
     encrypted_key: str = Field(..., description="暗号化されたファイル鍵")
 
 
+class FileUpdateRequest(BaseModel):
+    """ファイル更新リクエスト"""
+    is_invalidated: bool = Field(..., description="ファイル無効化フラグ")
+
+
 class FileInfoResponse(BaseModel):
     """ファイル情報レスポンス"""
     file_id: str
@@ -85,6 +90,7 @@ class FileInfoResponse(BaseModel):
     expires_at: datetime
     max_downloads: int
     download_count: int = 0
+    is_invalidated: bool = False
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -103,6 +109,7 @@ class RecentFileItem(BaseModel):
     request_count: int
     pending_request_count: int
     status: FileStatus
+    is_invalidated: bool = False
 
 
 class RecentFilesResponse(BaseModel):

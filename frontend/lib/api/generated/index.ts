@@ -23,6 +23,7 @@ export type { FileActivity } from './models/FileActivity';
 export type { FileInfoResponse } from './models/FileInfoResponse';
 export type { FileRequestListResponse } from './models/FileRequestListResponse';
 export { FileStatus } from './models/FileStatus';
+export type { FileUpdateRequest } from './models/FileUpdateRequest';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { InitiateUploadRequest } from './models/InitiateUploadRequest';
 export type { InitiateUploadResponse } from './models/InitiateUploadResponse';

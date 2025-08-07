@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery } from '@tanstack/react-query'
 import { FilesService, RecentFileItem } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload, RefreshCw } from 'lucide-react'
+import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload, RefreshCw, ShieldOff } from 'lucide-react'
 import { formatBytes } from '@/lib/utils'
 
 function FilesPageContent() {
@@ -97,12 +97,6 @@ function FilesPageContent() {
           </div>
           <div className="flex items-center justify-center space-x-4 mb-4">
             <h1 className="text-5xl font-black gradient-text">ファイル管理</h1>
-            {isFetching && !loading && (
-              <div className="flex items-center space-x-2 text-blue-600">
-                <RefreshCw className="h-5 w-5 animate-spin" />
-                <span className="text-sm font-medium">更新中...</span>
-              </div>
-            )}
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             アップロードしたファイルを安全に管理・共有
@@ -178,19 +172,29 @@ function FilesPageContent() {
 
                         {/* ステータス */}
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                          <span className={`inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold ${
-                            file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
-                            file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
-                            'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
-                          }`}>
-                            <div className={`w-2 h-2 rounded-full mr-2 ${
-                              file.status === 'completed' ? 'bg-green-500' :
-                              file.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
-                            }`}></div>
-                            {file.status === 'completed' ? 'アップロード完了' :
-                             file.status === 'failed' ? 'アップロード失敗' : 
-                             file.status === 'uploading' ? 'アップロード中' : file.status}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold ${
+                              file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
+                              file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
+                              'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
+                            }`}>
+                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                                file.status === 'completed' ? 'bg-green-500' :
+                                file.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                              }`}></div>
+                              {file.status === 'completed' ? 'アップロード完了' :
+                               file.status === 'failed' ? 'アップロード失敗' : 
+                               file.status === 'uploading' ? 'アップロード中' : file.status}
+                            </span>
+
+                            {/* 無効化状態表示 */}
+                            {file.is_invalidated && (
+                              <span className="inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700">
+                                <ShieldOff className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                無効化済み
+                              </span>
+                            )}
+                          </div>
 
                           {/* 操作ボタン */}
                           <button

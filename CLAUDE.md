@@ -217,6 +217,104 @@ asyncio.run(check_db())
 - 型安全性を保つため、生成されたクライアントの型定義を活用すること
 - 認証が必要なエンドポイントは `OpenAPI.TOKEN` 設定により自動的にJWTトークンが付与される
 
+### HTTPメソッドの使い分け
+
+RESTful API設計において、適切なHTTPメソッドの選択は重要です。以下のガイドラインに従ってください。
+
+#### PUT vs POST vs PATCH
+
+**PUT (リソース全体の置換)**:
+- **用途**: リソース全体を完全に置き換える
+- **冪等性**: あり（同じリクエストを複数回実行しても結果は同じ）
+- **使用例**: ユーザープロフィール全体の更新、ファイルメタデータ全体の置換
+
+```python
+@router.put("/users/{user_id}")
+async def update_user_profile(user_id: str, user_data: UserProfileUpdate):
+    # ユーザープロフィール全体を置き換える
+    pass
+```
+
+**POST (新規作成・状態変更アクション)**:
+- **用途**: 新しいリソースの作成、状態変更を伴うアクション実行
+- **冪等性**: なし（同じリクエストを複数回実行すると異なる結果になる可能性がある）
+- **使用例**: ファイルアップロード、アクセスリクエスト承認/拒否、ファイル無効化
+
+```python
+@router.post("/files/upload")
+async def upload_file(file_data: FileUploadRequest):
+    # 新しいファイルを作成
+    pass
+
+@router.post("/files/{file_id}/invalidate")
+async def invalidate_file(file_id: str):
+    # ファイルを無効化する（状態変更アクション）
+    pass
+
+@router.post("/requests/{request_id}/approve")
+async def approve_request(request_id: str):
+    # リクエストを承認する（状態変更アクション）
+    pass
+```
+
+**PATCH (リソースの部分更新)**:
+- **用途**: リソースの一部フィールドのみを更新
+- **冪等性**: 一般的にあり（実装により異なる）
+- **使用例**: ユーザー設定の一部変更、ファイル名のみの変更
+
+```python
+@router.patch("/files/{file_id}")
+async def update_file_metadata(file_id: str, updates: FileMetadataUpdate):
+    # ファイルの一部メタデータのみを更新
+    pass
+```
+
+#### 判断基準とプロジェクト方針
+
+1. **リソース作成**: `POST /resource`
+2. **リソース全体置換**: `PUT /resource/{id}`
+3. **リソース部分更新**: `PATCH /resource/{id}`
+4. **状態変更アクション（冪等でない）**: `POST /resource/{id}/action`
+5. **状態変更（冪等）**: `PUT /resource/{id}/state` または `PATCH /resource/{id}`
+
+#### 具体的な操作とメソッドの選択
+
+**ファイル無効化の場合**:
+```python
+# オプション1: PATCH（部分更新として扱う）- 推奨
+@router.patch("/files/{file_id}")
+async def update_file(file_id: str, update: FileUpdate):
+    # {"isInvalidated": true} のような部分更新
+    pass
+
+# オプション2: PUT（状態設定として扱う）
+@router.put("/files/{file_id}/invalidated")
+async def set_file_invalidated(file_id: str):
+    # ファイルの無効化状態を設定（冪等）
+    pass
+```
+
+**本プロジェクトでの実装例**:
+- ✅ `POST /files/upload/initiate` - ファイルアップロード開始（新規作成）
+- ✅ `POST /requests/{id}/approve` - リクエスト承認（非冪等・ログ重要）
+- ✅ `POST /requests/{id}/reject` - リクエスト拒否（非冪等・ログ重要）
+- 🆕 `PATCH /files/{id}` - ファイル無効化（冪等・部分更新）
+
+#### 冪等性による判断
+
+**冪等な操作（何度実行しても同じ結果）**:
+- ファイル無効化: 無効→無効（変化なし）
+- ユーザー設定変更: 同じ値に何度設定しても同じ
+- → `PUT` または `PATCH` を使用
+
+**非冪等な操作（実行の度に状態が変わる可能性）**:
+- リクエスト承認: 承認日時の記録、通知送信など副作用がある
+- ファイルアップロード: 新しいリソースが毎回作成される
+- → `POST` を使用
+
+**ファイル無効化の設計決定**:
+無効化は冪等な操作（何度実行しても結果は同じ）なので、`PATCH /files/{file_id}` で `{"isInvalidated": true}` を送信する方式を採用します。
+
 ## UI開発ガイドライン
 
 - **重要**: UI/UXの改善や新規作成時は、実際のAPIとデータを使用してください

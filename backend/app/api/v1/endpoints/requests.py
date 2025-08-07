@@ -54,6 +54,13 @@ async def create_access_request(
                 detail="File is not available yet"
             )
         
+        # ファイル無効化チェック
+        if file.isInvalidated:
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="This file has been invalidated"
+            )
+        
         # 有効期限チェック
         if security.is_expired(file.expiresAt):
             raise HTTPException(

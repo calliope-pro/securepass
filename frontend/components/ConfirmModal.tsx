@@ -9,7 +9,7 @@ interface ConfirmModalProps {
   onClose: () => void
   onConfirm: () => void
   title: string
-  message: string
+  message: string | React.ReactNode
   confirmText: string
   cancelText?: string
   type?: 'danger' | 'success' | 'warning'
@@ -94,10 +94,12 @@ export default function ConfirmModal({
                   >
                     {title}
                   </Dialog.Title>
-                  <div className="mb-6">
-                    <p className="text-gray-600">
-                      {message}
-                    </p>
+                  <div className="mb-6 text-gray-600">
+                    {typeof message === 'string' ? (
+                      <p>{message}</p>
+                    ) : (
+                      message
+                    )}
                   </div>
                 </div>
 
