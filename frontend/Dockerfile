@@ -21,5 +21,5 @@ COPY . .
 # ポート3000を公開
 EXPOSE 3000
 
-# 開発サーバーを起動
-CMD ["yarn", "dev"]
+# サーバーを起動
+CMD ["yarn", "start"]
