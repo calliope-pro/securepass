@@ -208,7 +208,7 @@ export default function DashboardPage() {
               <Link
                 key={index}
                 href={action.href}
-                className="glass-dark rounded-2xl p-6 modern-shadow  transition-all duration-300 hover:bg-white/60"
+                className="glass-dark rounded-2xl p-6 modern-shadow hover:scale-105 transition-all duration-300"
               >
                 <div className="text-center space-y-4">
                   <div className={`p-4 ${action.color.includes('animated') ? 'animated-gradient' : action.color} rounded-xl inline-flex `}>
@@ -277,7 +277,7 @@ export default function DashboardPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {fileActivities.slice(0, 6).map((file) => (
-                <div key={file.id} className="glass-dark rounded-2xl p-6 modern-shadow  transition-all duration-300">
+                <Link key={file.id} href={`/files/${file.id}`} className="glass-dark rounded-2xl p-6 modern-shadow hover:scale-105 transition-all duration-300 block">
                   <div className="flex items-start space-x-4">
                     <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl ">
                       <FileText className="h-6 w-6 text-blue-600" />
@@ -314,17 +314,14 @@ export default function DashboardPage() {
                           <Download className="h-4 w-4" />
                           <span>{file.download_count || 0}</span>
                         </div>
-                        <Link
-                          href={`/files/${file.id}`}
-                          className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          <span>詳細</span>
+                        <div className="inline-flex items-center space-x-1 text-blue-600 font-medium">
+                          <span>詳細を見る</span>
                           <ArrowRight className="h-3 w-3" />
-                        </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
