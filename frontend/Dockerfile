@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 # yarnをインストール
-RUN yarn set version stable
+RUN npm install -g corepack && yarn init -2 && yarn set version stable
 
 # package.jsonとyarn.lockをコピー
 COPY package.json yarn.lock ./
