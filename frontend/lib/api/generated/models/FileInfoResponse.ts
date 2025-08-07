@@ -17,6 +17,7 @@ export type FileInfoResponse = {
     expires_at: string;
     max_downloads: number;
     download_count?: number;
-    is_invalidated?: boolean;
+    blocks_requests?: boolean;
+    blocks_downloads?: boolean;
 };
 

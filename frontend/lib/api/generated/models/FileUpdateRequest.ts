@@ -7,8 +7,12 @@
  */
 export type FileUpdateRequest = {
     /**
-     * ファイル無効化フラグ
+     * 新規リクエスト受付停止フラグ
      */
-    is_invalidated: boolean;
+    blocks_requests?: (boolean | null);
+    /**
+     * ダウンロード禁止フラグ
+     */
+    blocks_downloads?: (boolean | null);
 };
 

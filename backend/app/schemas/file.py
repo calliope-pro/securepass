@@ -75,7 +75,8 @@ class CompleteUploadRequest(BaseModel):
 
 class FileUpdateRequest(BaseModel):
     """ファイル更新リクエスト"""
-    is_invalidated: bool = Field(..., description="ファイル無効化フラグ")
+    blocks_requests: bool | None = Field(None, description="新規リクエスト受付停止フラグ")
+    blocks_downloads: bool | None = Field(None, description="ダウンロード禁止フラグ")
 
 
 class FileInfoResponse(BaseModel):
@@ -90,7 +91,8 @@ class FileInfoResponse(BaseModel):
     expires_at: datetime
     max_downloads: int
     download_count: int = 0
-    is_invalidated: bool = False
+    blocks_requests: bool = False
+    blocks_downloads: bool = False
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -109,7 +111,8 @@ class RecentFileItem(BaseModel):
     request_count: int
     pending_request_count: int
     status: FileStatus
-    is_invalidated: bool = False
+    blocks_requests: bool = False
+    blocks_downloads: bool = False
 
 
 class RecentFilesResponse(BaseModel):

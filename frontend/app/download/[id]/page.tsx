@@ -30,6 +30,7 @@ export default function DownloadPage() {
   // ファイル名と承認状態を取得
   const fileName = requestStatus?.file_info?.filename || 'ファイル'
   const isApproved = requestStatus?.status === 'approved'
+  const downloadAvailable = requestStatus?.download_available === true
 
   // ファイルをダウンロードして即座保存
   const downloadMutation = useMutation({
@@ -124,10 +125,15 @@ export default function DownloadPage() {
               </h2>
               
               <div className="flex items-center justify-center space-x-2 text-sm">
-                {isApproved ? (
+                {isApproved && downloadAvailable ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-green-600">承認済み・ダウンロード可能</span>
+                  </>
+                ) : isApproved && !downloadAvailable ? (
+                  <>
+                    <XCircle className="h-4 w-4 text-orange-500" />
+                    <span className="text-orange-600">承認済み・ダウンロード禁止中</span>
                   </>
                 ) : requestStatus ? (
                   <>
@@ -152,11 +158,11 @@ export default function DownloadPage() {
                 <div className="space-y-4">
                   <button
                     onClick={() => downloadMutation.mutate()}
-                    disabled={isDownloading || !isApproved}
+                    disabled={isDownloading || !downloadAvailable}
                     className={`
                       w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300
                       flex items-center justify-center space-x-3
-                      ${isDownloading || !isApproved
+                      ${isDownloading || !downloadAvailable
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'animated-gradient text-white hover:scale-[1.02] active:scale-98 shadow-lg hover:shadow-xl'
                       }
@@ -167,10 +173,14 @@ export default function DownloadPage() {
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         <span>{isDecrypting ? '復号化中...' : 'ダウンロード中...'}</span>
                       </>
-                    ) : !isApproved ? (
+                    ) : !downloadAvailable ? (
                       <>
                         <XCircle className="h-5 w-5" />
-                        <span>ダウンロード不可</span>
+                        <span>
+                          {!isApproved ? 'ダウンロード不可' : 
+                           requestStatus?.file_info?.blocks_downloads ? 'ダウンロード禁止中' :
+                           'ダウンロード不可'}
+                        </span>
                       </>
                     ) : (
                       <>
@@ -180,7 +190,7 @@ export default function DownloadPage() {
                     )}
                   </button>
                 </div>
-              ) : isApproved ? (
+              ) : downloadAvailable ? (
                 <div className="text-center space-y-6">
                   <div className="inline-flex p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-full">
                     <Sparkles className="h-8 w-8 text-green-600" />
@@ -199,7 +209,12 @@ export default function DownloadPage() {
                       setDownloadComplete(false)
                       downloadMutation.mutate()
                     }}
-                    className="animated-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg hover:scale-[1.02] active:scale-98 transition-all duration-300 shadow-lg hover:shadow-xl inline-flex items-center space-x-3"
+                    disabled={!downloadAvailable}
+                    className={`px-8 py-4 rounded-xl font-semibold text-lg hover:scale-[1.02] active:scale-98 transition-all duration-300 shadow-lg hover:shadow-xl inline-flex items-center space-x-3 ${
+                      downloadAvailable 
+                        ? 'animated-gradient text-white' 
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
                     <Download className="h-5 w-5" />
                     <span>再ダウンロード</span>
@@ -218,6 +233,10 @@ export default function DownloadPage() {
                         'このリクエストはまだ承認されていません。承認をお待ちください。' :
                        requestStatus?.status === 'rejected' ? 
                         'このリクエストは拒否されました。' :
+                       isApproved && requestStatus?.file_info?.blocks_downloads ?
+                        'ファイル送信者によってダウンロードが禁止されています。' :
+                       isApproved && requestStatus?.file_info?.expires_at ?
+                        'ファイルの有効期限が切れています。' :
                         'アクセスできません。'
                       }
                     </p>

@@ -6,10 +6,11 @@ import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FilesService, RequestsService, type AccessRequestItem } from '@/lib/api/generated'
 import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy, RefreshCw, ShieldOff, AlertTriangle } from 'lucide-react'
-import { formatBytes, formatDate } from '@/lib/utils'
+import { formatBytes, formatDate, isExpired } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import ConfirmModal from '@/components/ConfirmModal'
-import InvalidateFileButton from '@/components/InvalidateFileButton'
+import BlockRequestsButton from '@/components/BlockRequestsButton'
+import BlockDownloadsButton from '@/components/BlockDownloadsButton'
 
 export default function FileDetailPage() {
   const { fileId } = useParams<{ fileId: string }>()
@@ -291,30 +292,69 @@ export default function FileDetailPage() {
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
                   <button
                     onClick={handleCopyShareUrl}
-                    disabled={fileInfo.is_invalidated}
+                    disabled={fileInfo.is_invalidated || isExpired(fileInfo.expires_at)}
                     className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Copy className="h-5 w-5" />
                     <span>{shareUrlCopied ? 'コピーしました！' : '共有URLをコピー'}</span>
                   </button>
                   
-                  <InvalidateFileButton
+                  <BlockRequestsButton
                     fileId={fileId}
                     filename={fileInfo.filename}
-                    isInvalidated={fileInfo.is_invalidated}
+                    blocksRequests={fileInfo.blocks_requests}
+                    expiresAt={fileInfo.expires_at}
+                  />
+                  
+                  <BlockDownloadsButton
+                    fileId={fileId}
+                    filename={fileInfo.filename}
+                    blocksDownloads={fileInfo.blocks_downloads}
+                    expiresAt={fileInfo.expires_at}
                   />
                 </div>
                 
-                {/* 無効化状態の警告 */}
-                {fileInfo.is_invalidated && (
+                {/* リクエスト受付停止状態の警告 */}
+                {fileInfo.blocks_requests && (
                   <div className="mt-6 mx-auto max-w-md">
                     <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl">
                       <div className="p-2 bg-red-100 rounded-full">
                         <AlertTriangle className="h-5 w-5 text-red-600" />
                       </div>
                       <div className="text-left">
-                        <p className="font-semibold text-red-900">ファイルが無効化されています</p>
+                        <p className="font-semibold text-red-900">リクエスト受付停止中</p>
                         <p className="text-sm text-red-700">新しいアクセスリクエストは受け付けられません</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ダウンロード禁止状態の警告 */}
+                {fileInfo.blocks_downloads && (
+                  <div className="mt-6 mx-auto max-w-md">
+                    <div className="flex items-center space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                      <div className="p-2 bg-orange-100 rounded-full">
+                        <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold text-orange-900">ダウンロード禁止中</p>
+                        <p className="text-sm text-orange-700">承認済みリクエストでもダウンロードできません</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 期限切れファイルの警告 */}
+                {isExpired(fileInfo.expires_at) && (
+                  <div className="mt-6 mx-auto max-w-md">
+                    <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <div className="p-2 bg-red-100 rounded-full">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold text-red-900">ファイルの有効期限が切れています</p>
+                        <p className="text-sm text-red-700">新しいアクセスリクエストは受け付けられません</p>
+                        <p className="text-sm text-red-700">承認済みリクエストでもダウンロードできません</p>
                       </div>
                     </div>
                   </div>

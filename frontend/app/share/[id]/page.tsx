@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Shield, Download, Clock, FileText, Send, Lock, Eye, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { api } from '@/lib/api'
-import { formatBytes, formatDate } from '@/lib/utils'
+import { formatBytes, formatDate, isExpired } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 export default function SharePage() {
@@ -75,6 +75,7 @@ export default function SharePage() {
   }
 
   const isApproved = requestStatus?.status === 'approved'
+  const fileExpired = shareInfo && isExpired(shareInfo.expires_at)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 py-8 px-4">
@@ -166,7 +167,25 @@ export default function SharePage() {
 
         {/* Request Form or Status */}
         <div className="mt-12">
-          {!requestId ? (
+          {fileExpired ? (
+            <div className="max-w-2xl mx-auto">
+              <div className="glass rounded-2xl p-8 modern-shadow">
+                <div className="text-center py-8">
+                  <div className="inline-flex p-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-full mb-6">
+                    <AlertCircle className="h-12 w-12 text-red-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">ファイルの有効期限が切れています</h3>
+                  <div className="space-y-2 text-gray-600 mb-6">
+                    <p>• 新しいアクセスリクエストは受け付けられません</p>
+                    <p>• 承認済みリクエストでもダウンロードできません</p>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    有効期限: {formatDate(shareInfo.expires_at)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : !requestId ? (
             <div className="max-w-2xl mx-auto">
               <div className="glass rounded-2xl p-8 modern-shadow">
                 <div className="text-center mb-8">
@@ -252,16 +271,37 @@ export default function SharePage() {
                       <CheckCircle className="h-12 w-12 text-green-600" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">承認されました！</h3>
-                    <p className="text-gray-600 mb-8">
-                      リクエストが承認されました。ファイルをダウンロードできます。
-                    </p>
-                    <button
-                      onClick={() => window.location.href = `/download/${requestId}`}
-                      className="animated-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg hover:scale-[1.02] active:scale-98 transition-all duration-300 shadow-lg hover:shadow-xl inline-flex items-center space-x-3"
-                    >
-                      <Download className="h-6 w-6" />
-                      <span>ファイルをダウンロード</span>
-                    </button>
+                    {fileExpired ? (
+                      <>
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
+                          <div className="flex items-center justify-center space-x-2 text-red-600 mb-2">
+                            <AlertCircle className="h-5 w-5" />
+                            <span className="font-semibold">ファイルの有効期限が切れています</span>
+                          </div>
+                          <p className="text-sm text-red-700">承認済みリクエストでもダウンロードできません</p>
+                        </div>
+                        <button
+                          disabled
+                          className="bg-gray-300 text-gray-500 px-8 py-4 rounded-xl font-semibold text-lg cursor-not-allowed inline-flex items-center space-x-3"
+                        >
+                          <Download className="h-6 w-6" />
+                          <span>ダウンロード不可（期限切れ）</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-600 mb-8">
+                          リクエストが承認されました。ファイルをダウンロードできます。
+                        </p>
+                        <button
+                          onClick={() => window.location.href = `/download/${requestId}`}
+                          className="animated-gradient text-white px-8 py-4 rounded-xl font-semibold text-lg hover:scale-[1.02] active:scale-98 transition-all duration-300 shadow-lg hover:shadow-xl inline-flex items-center space-x-3"
+                        >
+                          <Download className="h-6 w-6" />
+                          <span>ファイルをダウンロード</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
                 

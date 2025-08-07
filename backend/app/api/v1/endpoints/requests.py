@@ -54,11 +54,11 @@ async def create_access_request(
                 detail="File is not available yet"
             )
         
-        # ファイル無効化チェック
-        if file.isInvalidated:
+        # リクエスト受付停止チェック
+        if file.blocksRequests:
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,
-                detail="This file has been invalidated"
+                detail="This file is not accepting new requests"
             )
         
         # 有効期限チェック
@@ -306,8 +306,7 @@ async def get_request_status(request_id: str):
     try:
         # リクエストを取得
         access_request = await prisma.accessrequest.find_unique(
-            where={"requestId": request_id},
-            include={"file": True}
+            where={"requestId": request_id}
         )
         
         if not access_request:
@@ -316,21 +315,37 @@ async def get_request_status(request_id: str):
                 detail="Request not found"
             )
         
+        # ファイル情報を最新の状態で取得
+        file = await prisma.file.find_unique(
+            where={"id": access_request.fileId}
+        )
+        
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
+            )
+        
         response = {
             "request_id": access_request.requestId,
             "status": access_request.status,
             "created_at": access_request.createdAt,
             "file_info": {
-                "filename": access_request.file.filename,
-                "size": access_request.file.size,
-                "mime_type": access_request.file.mimeType
+                "filename": file.filename,
+                "size": file.size,
+                "mime_type": file.mimeType,
+                "blocks_downloads": file.blocksDownloads,
+                "expires_at": file.expiresAt
             }
         }
         
         # 承認済みの場合はダウンロード情報を含める
         if access_request.status == RequestStatus.APPROVED.value:
             response["approved_at"] = access_request.approvedAt
-            response["download_available"] = True
+            # ダウンロード可能かを判定（禁止フラグと有効期限をチェック）
+            from app.core.security import security
+            download_available = not file.blocksDownloads and not security.is_expired(file.expiresAt)
+            response["download_available"] = download_available
             # TODO: ダウンロード用の一時的なトークンを生成
         
         return response

@@ -29,6 +29,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!
 console.log('API_URL configured as:', API_URL)
 OpenAPI.BASE = API_URL
 
+// キャッシュ無効化ヘッダー
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+} as const
+
+
 // Auth0 JWT トークンの自動付与
 OpenAPI.TOKEN = async () => {
   try {
@@ -97,7 +105,14 @@ export const api = {
   },
 
   async getRequestStatus(requestId: string) {
-    return RequestsService.getRequestStatus(requestId)
+    const originalHeaders = OpenAPI.HEADERS
+    OpenAPI.HEADERS = { ...originalHeaders, ...NO_CACHE_HEADERS }
+    
+    try {
+      return await RequestsService.getRequestStatus(requestId)
+    } finally {
+      OpenAPI.HEADERS = originalHeaders
+    }
   },
 
   async approveRequest(requestId: string, encryptedKey?: string) {
@@ -116,51 +131,68 @@ export const api = {
 
   // Download
   async downloadFile(requestId: string): Promise<{ blob: Blob; filename?: string }> {
-    // JWT トークンを取得
-    const token = typeof OpenAPI.TOKEN === 'function' ? await (OpenAPI.TOKEN as Function)() : OpenAPI.TOKEN
+    const originalHeaders = OpenAPI.HEADERS
+    OpenAPI.HEADERS = { ...originalHeaders, ...NO_CACHE_HEADERS }
     
-    // 直接fetchを使用してBlobレスポンスを処理（OpenAPIクライアントと同じ設定を使用）
-    const response = await fetch(`${OpenAPI.BASE}/api/v1/download/${requestId}/file`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/octet-stream',
-        // 認証ヘッダーを追加
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-      },
-    })
-    
-    if (!response.ok) {
-      // OpenAPIクライアントと同様のエラーハンドリング
-      const errorText = await response.text()
-      throw new Error(`HTTP ${response.status}: ${errorText}`)
-    }
-    
-    const blob = await response.blob()
-    
-    // Content-Dispositionヘッダーからファイル名を抽出
-    const contentDisposition = response.headers.get('Content-Disposition')
-    let filename: string | undefined
-    
-    if (contentDisposition) {
-      // RFC 6266に準拠したファイル名の抽出
-      const filenameMatch = contentDisposition.match(/filename\*?=([^;]+)/)
-      if (filenameMatch) {
-        const rawFilename = filenameMatch[1].trim()
-        // UTF-8エンコードされた形式（filename*=UTF-8''encoded_name）の処理
-        if (rawFilename.startsWith("UTF-8''")) {
-          filename = decodeURIComponent(rawFilename.slice(7))
-        } else {
-          // 通常の形式（filename="name"）の処理
-          filename = rawFilename.replace(/['"]/g, '')
+    try {
+      // OpenAPIクライアントでファイルをダウンロード
+      const response = await DownloadService.downloadFile(requestId)
+      
+      // レスポンスがBlobかどうか確認
+      if (response instanceof Blob) {
+        return { blob: response }
+      }
+      
+      // レスポンスが期待通りでない場合は直接fetchを使用
+      const token = typeof OpenAPI.TOKEN === 'function' ? await (OpenAPI.TOKEN as Function)() : OpenAPI.TOKEN
+      
+      const fetchResponse = await fetch(`${OpenAPI.BASE}/api/v1/download/${requestId}/file`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/octet-stream',
+          ...NO_CACHE_HEADERS,
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      })
+      
+      if (!fetchResponse.ok) {
+        const errorText = await fetchResponse.text()
+        throw new Error(`HTTP ${fetchResponse.status}: ${errorText}`)
+      }
+      
+      const blob = await fetchResponse.blob()
+      
+      // Content-Dispositionヘッダーからファイル名を抽出
+      const contentDisposition = fetchResponse.headers.get('Content-Disposition')
+      let filename: string | undefined
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename\*?=([^;]+)/)
+        if (filenameMatch) {
+          const rawFilename = filenameMatch[1].trim()
+          if (rawFilename.startsWith("UTF-8''")) {
+            filename = decodeURIComponent(rawFilename.slice(7))
+          } else {
+            filename = rawFilename.replace(/['"]/g, '')
+          }
         }
       }
+      
+      return { blob, filename }
+    } finally {
+      OpenAPI.HEADERS = originalHeaders
     }
-    
-    return { blob, filename }
   },
 
   async getDecryptKey(requestId: string) {
-    return DownloadService.getDecryptKey(requestId)
+    const originalHeaders = OpenAPI.HEADERS
+    OpenAPI.HEADERS = { ...originalHeaders, ...NO_CACHE_HEADERS }
+    
+    try {
+      return await DownloadService.getDecryptKey(requestId)
+    } finally {
+      OpenAPI.HEADERS = originalHeaders
+    }
   },
 
   // Stats

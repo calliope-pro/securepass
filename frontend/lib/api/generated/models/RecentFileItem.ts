@@ -19,6 +19,7 @@ export type RecentFileItem = {
     request_count: number;
     pending_request_count: number;
     status: FileStatus;
-    is_invalidated?: boolean;
+    blocks_requests?: boolean;
+    blocks_downloads?: boolean;
 };
 

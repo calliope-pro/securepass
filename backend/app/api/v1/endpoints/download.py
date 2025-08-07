@@ -61,8 +61,7 @@ async def download_file(request_id: str, req: Request):
     try:
         # リクエストを取得
         access_request = await prisma.accessrequest.find_unique(
-            where={"requestId": request_id},
-            include={"file": {"include": {"chunks": True}}}
+            where={"requestId": request_id}
         )
         
         if not access_request:
@@ -78,13 +77,31 @@ async def download_file(request_id: str, req: Request):
                 detail="Request not approved"
             )
         
-        file = access_request.file
+        # ファイル情報を最新の状態で取得
+        file = await prisma.file.find_unique(
+            where={"id": access_request.fileId},
+            include={"chunks": True}
+        )
+        
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
+            )
         
         # ファイルの状態チェック
         if file.uploadStatus != FileStatus.COMPLETED.value:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="File is not ready for download"
+            )
+        
+        # ダウンロード禁止チェック
+        if file.blocksDownloads:
+            logger.warning(f"File {file.id} downloads are blocked")
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="File downloads are blocked"
             )
         
         # 有効期限チェック
@@ -132,7 +149,11 @@ async def download_file(request_id: str, req: Request):
             media_type=file.mimeType,
             headers={
                 "Content-Disposition": encode_filename_for_download(file.filename),
-                "Content-Length": str(file.size)
+                "Content-Length": str(file.size),
+                # キャッシュ無効化ヘッダー
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0"
             }
         )
         
@@ -157,8 +178,7 @@ async def get_decrypt_key(request_id: str, response: Response):
     try:
         # リクエストを取得
         access_request = await prisma.accessrequest.find_unique(
-            where={"requestId": request_id},
-            include={"file": True}
+            where={"requestId": request_id}
         )
         
         if not access_request:
@@ -174,6 +194,25 @@ async def get_decrypt_key(request_id: str, response: Response):
                 detail="Request not approved"
             )
         
+        # ファイル情報を最新の状態で取得
+        file = await prisma.file.find_unique(
+            where={"id": access_request.fileId}
+        )
+        
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found"
+            )
+        
+        # ダウンロード禁止チェック
+        if file.blocksDownloads:
+            logger.warning(f"File {file.id} downloads are blocked")
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="File downloads are blocked"
+            )
+        
         logger.info(f"Decrypt key accessed for request {request_id}")
         
         # キャッシュ無効化ヘッダーを設定
@@ -182,7 +221,7 @@ async def get_decrypt_key(request_id: str, response: Response):
         response.headers["Expires"] = "0"
         
         return {
-            "encrypted_key": access_request.file.encryptedKey
+            "encrypted_key": file.encryptedKey
         }
         
     except HTTPException:

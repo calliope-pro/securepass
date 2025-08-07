@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery } from '@tanstack/react-query'
 import { FilesService, RecentFileItem } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload, RefreshCw, ShieldOff } from 'lucide-react'
+import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload, RefreshCw, ShieldOff, Clock } from 'lucide-react'
 import { formatBytes } from '@/lib/utils'
 
 function FilesPageContent() {
@@ -50,6 +50,34 @@ function FilesPageContent() {
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  // 期限切れかどうかをチェック
+  const isExpired = (expiresAt: string): boolean => {
+    return new Date(expiresAt) < new Date()
+  }
+
+  // 有効期限までの時間を計算
+  const getTimeUntilExpiration = (expiresAt: string): string => {
+    const now = new Date()
+    const expiry = new Date(expiresAt)
+    const diff = expiry.getTime() - now.getTime()
+    
+    if (diff < 0) {
+      return "期限切れ"
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    
+    if (days > 0) {
+      return `${days}日後`
+    } else if (hours > 0) {
+      return `${hours}時間後`
+    } else {
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      return `${minutes}分後`
+    }
   }
 
   // 認証チェック
@@ -146,7 +174,9 @@ function FilesPageContent() {
               ) : (
                 <>
                   {files.map((file: RecentFileItem) => (
-                    <div key={file.file_id} className="glass rounded-2xl p-4 sm:p-6 modern-shadow hover:bg-white/50 transition-all duration-200 group">
+                    <div key={file.file_id} className={`glass rounded-2xl p-4 sm:p-6 modern-shadow hover:bg-white/50 transition-all duration-200 group ${
+                      isExpired(file.expires_at) ? 'border-2 border-red-200 bg-red-50/30' : ''
+                    }`}>
                       <div className="space-y-4">
                         {/* ファイル情報 */}
                         <div className="flex items-start space-x-4">
@@ -165,6 +195,20 @@ function FilesPageContent() {
                               <div className="flex items-center space-x-2">
                                 <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
                                 <span className="text-gray-600 truncate">{formatDate(file.created_at)}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Clock className={`h-4 w-4 flex-shrink-0 ${
+                                  isExpired(file.expires_at) ? 'text-red-500' : 
+                                  new Date(file.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 ? 'text-orange-500' : 
+                                  'text-gray-500'
+                                }`} />
+                                <span className={`truncate ${
+                                  isExpired(file.expires_at) ? 'text-red-600 font-bold' : 
+                                  new Date(file.expires_at).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 ? 'text-orange-600 font-medium' : 
+                                  'text-gray-600'
+                                }`}>
+                                  {getTimeUntilExpiration(file.expires_at)}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -187,11 +231,19 @@ function FilesPageContent() {
                                file.status === 'uploading' ? 'アップロード中' : file.status}
                             </span>
 
-                            {/* 無効化状態表示 */}
-                            {file.is_invalidated && (
+                            {/* リクエスト受付停止状態表示 */}
+                            {file.blocks_requests && (
                               <span className="inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700">
                                 <ShieldOff className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                無効化済み
+                                リクエスト受付停止
+                              </span>
+                            )}
+
+                            {/* ダウンロード禁止状態表示 */}
+                            {file.blocks_downloads && (
+                              <span className="inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-orange-500/10 to-red-500/10 text-orange-700">
+                                <ShieldOff className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                ダウンロード禁止
                               </span>
                             )}
                           </div>

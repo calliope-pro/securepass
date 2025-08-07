@@ -396,7 +396,8 @@ async def get_recent_files(
                 request_count=all_requests,
                 pending_request_count=pending_requests,
                 status=FileStatus(file.uploadStatus),
-                is_invalidated=file.isInvalidated
+                blocks_requests=file.blocksRequests,
+                blocks_downloads=file.blocksDownloads
             )
             result.append(item)
         
@@ -443,7 +444,8 @@ async def get_file_info(file_id: str) -> FileInfoResponse:
             expires_at=file.expiresAt,
             max_downloads=file.maxDownloads,
             download_count=len(file.downloads),
-            is_invalidated=file.isInvalidated
+            blocks_requests=file.blocksRequests,
+            blocks_downloads=file.blocksDownloads
         )
         
     except HTTPException:
@@ -485,12 +487,23 @@ async def update_file(
                 detail="Not authorized to update this file"
             )
         
+        # 期限切れファイルの更新を禁止
+        if security.is_expired(file.expiresAt):
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="Cannot update expired file"
+            )
+        
         # ファイルを更新
+        update_data = {}
+        if request.blocks_requests is not None:
+            update_data["blocksRequests"] = request.blocks_requests
+        if request.blocks_downloads is not None:
+            update_data["blocksDownloads"] = request.blocks_downloads
+            
         updated_file = await prisma.file.update(
             where={"id": file_id},
-            data={
-                "isInvalidated": request.is_invalidated
-            },
+            data=update_data,
             include={
                 "downloads": True
             }
@@ -507,7 +520,8 @@ async def update_file(
             expires_at=updated_file.expiresAt,
             max_downloads=updated_file.maxDownloads,
             download_count=len(updated_file.downloads),
-            is_invalidated=updated_file.isInvalidated
+            blocks_requests=updated_file.blocksRequests,
+            blocks_downloads=updated_file.blocksDownloads
         )
         
     except HTTPException:

@@ -36,7 +36,8 @@ model File {
   uploadStatus   String   @default("uploading") // uploading, completed, failed
   chunkCount     Int      @default(0)
   uploadedChunks Int      @default(0)
-  isInvalidated  Boolean  @default(false) // ファイル無効化フラグ
+  blocksRequests Boolean  @default(false) // 新規リクエスト受付停止フラグ
+  blocksDownloads Boolean @default(false) // ダウンロード禁止フラグ
   createdAt      DateTime @default(now())
   expiresAt      DateTime
   maxDownloads   Int      @default(1)
@@ -53,7 +54,8 @@ model File {
   @@index([createdAt])
   @@index([uploadStatus])
   @@index([userId])
-  @@index([isInvalidated])
+  @@index([blocksRequests])
+  @@index([blocksDownloads])
 }
 
 model FileChunk {

@@ -7,6 +7,8 @@ import asyncio
 from datetime import datetime, timezone
 import logging
 
+import aioboto3
+from botocore.exceptions import ClientError
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
 from dramatiq.results import Results
@@ -17,6 +19,31 @@ from app.core.storage import R2Storage
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+async def delete_chunk_from_r2(key: str) -> bool:
+    """
+    R2からチャンクを削除するヘルパー関数
+    新しいセッションを使用してEvent loop closedエラーを回避
+    """
+    session = aioboto3.Session()
+    async with session.client(
+        's3',
+        endpoint_url=settings.R2_ENDPOINT,
+        aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+        region_name='auto'
+    ) as client:
+        try:
+            await client.delete_object(
+                Bucket=settings.R2_BUCKET_NAME,
+                Key=key
+            )
+            return True
+        except ClientError as e:
+            logger.error(f"Failed to delete object {key}: {e}")
+            return False
+
 
 # Redis結果バックエンド設定
 result_backend = RedisBackend(url=settings.REDIS_URL)
@@ -67,7 +94,10 @@ async def _cleanup_expired_files_storage_async() -> dict:
         expired_files = await prisma.file.find_many(
             where={
                 "expiresAt": {"lt": current_time},
-                "isInvalidated": False  # まだ無効化されていないファイル
+                "OR": [
+                    {"blocksRequests": False},  # まだリクエストがブロックされていない
+                    {"blocksDownloads": False}  # まだダウンロードが禁止されていない
+                ]
             },
             include={
                 "chunks": True
@@ -80,7 +110,6 @@ async def _cleanup_expired_files_storage_async() -> dict:
         
         logger.info(f"Found {len(expired_files)} expired files to clean up from storage")
         
-        storage = R2Storage()
         processed_count = 0
         errors = []
         
@@ -90,16 +119,21 @@ async def _cleanup_expired_files_storage_async() -> dict:
                 if file.chunks:
                     for chunk in file.chunks:
                         try:
-                            await storage.delete_object(chunk.r2Key)
+                            # 各削除操作で新しいセッションを使用してEvent loop closedエラーを回避
+                            await delete_chunk_from_r2(chunk.r2Key)
                             logger.debug(f"Deleted storage chunk: {chunk.r2Key}")
                         except Exception as e:
                             logger.warning(f"Failed to delete chunk {chunk.r2Key}: {e}")
                             errors.append(f"Storage deletion failed for chunk {chunk.id}: {e}")
                 
                 # ファイルを無効化としてマーク（DBレコードは保持）
+                # 期限切れファイルは両方のフラグを立てて完全アクセス不可にする
                 await prisma.file.update(
                     where={"id": file.id},
-                    data={"isInvalidated": True}
+                    data={
+                        "blocksRequests": True,
+                        "blocksDownloads": True
+                    }
                 )
                 
                 processed_count += 1

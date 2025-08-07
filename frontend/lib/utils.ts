@@ -30,3 +30,7 @@ export function formatDate(date: string | Date): string {
 export function calculateChunks(fileSize: number, chunkSize: number): number {
   return Math.ceil(fileSize / chunkSize)
 }
+
+export function isExpired(expiresAt: string): boolean {
+  return new Date(expiresAt) < new Date()
+}
