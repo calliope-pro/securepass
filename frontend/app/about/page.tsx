@@ -73,24 +73,26 @@ export default function AboutPage() {
             
             <div className="grid lg:grid-cols-5 gap-6 relative z-10">
               {steps.map((step, index) => (
-                <div key={index} className="relative">
-                  <div className="glass rounded-2xl p-6 modern-shadow text-center bg-white/95 backdrop-blur-sm border border-white/50">
+                <div key={index} className="relative h-full">
+                  <div className="glass rounded-2xl p-6 modern-shadow text-center bg-white/95 backdrop-blur-sm border border-white/50 h-full flex flex-col">
                     {/* Step number badge */}
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
                       {index + 1}
                     </div>
                     
                     {/* Icon */}
-                    <div className="inline-flex p-3 animated-gradient rounded-full mb-4 mt-2">
-                      <step.icon className="h-6 w-6 text-white" />
+                    <div className="flex justify-center mb-4 mt-2">
+                      <div className="inline-flex p-3 animated-gradient rounded-full">
+                        <step.icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
                     
                     {/* Content */}
-                    <div className="space-y-3">
+                    <div className="flex-1 flex flex-col space-y-3">
                       <h3 className="text-lg font-bold text-gray-900">
                         {step.title}
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed min-h-[4rem] flex items-center justify-center">
+                      <p className="text-sm text-gray-600 leading-relaxed flex-1 flex items-center justify-center">
                         {step.description}
                       </p>
                     </div>
