@@ -2,8 +2,12 @@
 'use client'
 
 import FileUploader from '@/components/FileUploader'
-import { Shield, Upload, Lock, Zap, Users, CheckCircle, Eye, Clock, Sparkles, ArrowRight, Star } from 'lucide-react'
+import { Shield, Upload, Lock, Zap, Users, CheckCircle, Eye, Clock, Sparkles, ArrowRight, Star, FileText, Activity } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth0 } from '@/contexts/Auth0Context'
+import { useQuery } from '@tanstack/react-query'
+import { FilesService } from '@/lib/api/generated'
+import { formatBytes } from '@/lib/utils'
 
 const features = [
   {
@@ -39,11 +43,35 @@ const features = [
 const stats = [
   { number: '500MB', label: '最大ファイルサイズ' },
   { number: '30日', label: '最大保存期間' },
-  { number: '100%', label: 'プライバシー保護' },
-  { number: '0円', label: '完全無料' }
+  { number: '100%', label: 'プライバシー保護' }
 ]
 
 export default function HomePage() {
+  const { isAuthenticated } = useAuth0()
+
+  // 最近のファイル3件を取得
+  const { data: recentFilesData } = useQuery({
+    queryKey: ['recent-files-preview'],
+    queryFn: () => FilesService.getRecentFiles(3, 0),
+    enabled: isAuthenticated,
+    staleTime: 0, // データを常に最新として扱う
+    refetchInterval: 5000, // 5秒ごとに自動更新
+    refetchIntervalInBackground: false, // バックグラウンドでは更新しない
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に更新
+    refetchOnMount: true, // マウント時に更新
+  })
+
+  const recentFiles = recentFilesData?.files || []
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleString('ja-JP', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 py-8 px-4">
       <div className="max-w-7xl mx-auto space-y-16">
@@ -80,10 +108,6 @@ export default function HomePage() {
               <Zap className="h-4 w-4 text-purple-500" />
               <span className="text-gray-700">超高速</span>
             </div>
-            <div className="flex items-center space-x-2 glass rounded-full px-4 py-2 modern-shadow">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <span className="text-gray-700">完全無料</span>
-            </div>
           </div>
         </div>
 
@@ -99,9 +123,71 @@ export default function HomePage() {
           <FileUploader />
         </div>
 
+        {/* Recent Files Section */}
+        {isAuthenticated && recentFiles.length > 0 && (
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="inline-flex p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full mb-4">
+                <Activity className="h-8 w-8 gradient-text" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">最近アップロードしたファイル</h2>
+              <p className="text-gray-600">直近にアップロードされたファイルの確認と管理</p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              {recentFiles.map((file) => (
+                <div key={file.file_id} className="glass rounded-xl p-6 modern-shadow hover:scale-105 transition-all duration-300 group">
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-gray-900 text-lg mb-1 break-words line-clamp-2">{file.filename}</h3>
+                        <p className="text-sm text-gray-600">{formatBytes(file.size)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">{formatDate(file.created_at)}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        file.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        file.status === 'failed' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {file.status === 'completed' ? '完了' :
+                         file.status === 'failed' ? '失敗' : 
+                         file.status === 'uploading' ? '中' : file.status}
+                      </span>
+                    </div>
+                    
+                    <Link 
+                      href={`/files/${file.file_id}`}
+                      className="inline-flex items-center space-x-2 w-full justify-center px-4 py-2 animated-gradient text-white rounded-lg font-medium text-sm hover:scale-105 transition-all duration-300"
+                    >
+                      <span>詳細を見る</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <Link 
+                href="/files"
+                className="inline-flex items-center space-x-2 px-6 py-3 glass-dark rounded-xl font-semibold hover:scale-105 transition-all duration-300 modern-shadow"
+              >
+                <span>すべてのファイルを見る</span>
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Statistics */}
         <div className="glass rounded-2xl p-8 modern-shadow hover-lift">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl font-black gradient-text mb-2">{stat.number}</div>
