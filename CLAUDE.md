@@ -42,8 +42,7 @@ uv run ruff check .
 uv run mypy .
 
 # バックグラウンドタスク関連
-uv run dramatiq app.background.tasks                    # Dramatiqワーカーの起動
-uv run python -m app.background.scheduler               # タスクスケジューラーの起動
+uv run python -m app.background.worker_with_scheduler   # ワーカー+スケジューラー統合版
 
 # Docker Compose経由でのバックエンド操作（推奨）
 docker compose exec backend uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -53,8 +52,7 @@ docker compose exec backend uv run ruff check .
 docker compose exec backend uv run mypy .
 
 # Docker Compose経由でのバックグラウンドタスク操作
-docker compose exec dramatiq-worker uv run dramatiq app.background.tasks
-docker compose exec task-scheduler uv run python -m app.background.scheduler
+docker compose exec worker uv run python -m app.background.worker_with_scheduler
 ```
 
 ### フロントエンド（Next.js/TypeScript）
@@ -348,8 +346,7 @@ async def set_file_invalidated(file_id: str):
    - 関連するチャンクファイルもストレージから削除
 
 ### サービス構成
-- `dramatiq-worker`: タスクを実際に実行するワーカープロセス
-- `task-scheduler`: 定期タスクをスケジュールするプロセス
+- `worker`: Dramatiqワーカーとタスクスケジューラーを統合したプロセス（デプロイ時は1サービスのみ）
 
 ## TODO
 - サインアップとサインインが同じ関数処理になっているので処理を分ける
