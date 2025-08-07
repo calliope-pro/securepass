@@ -8,6 +8,7 @@ import { FilesService, RequestsService } from '@/lib/api/generated'
 import { FileText, Calendar, Download, Eye, Share2, ChevronLeft, Clock, CheckCircle, XCircle, AlertCircle, Shield, ArrowRight, Activity, Users, Copy } from 'lucide-react'
 import { formatBytes, formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import ConfirmModal from '@/components/ConfirmModal'
 
 export default function FileDetailPage() {
   const { fileId } = useParams<{ fileId: string }>()
@@ -15,6 +16,12 @@ export default function FileDetailPage() {
   const router = useRouter()
   
   const [shareUrlCopied, setShareUrlCopied] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    type: 'approve' | 'reject'
+    requestId: string
+    reason?: string
+  }>({ isOpen: false, type: 'approve', requestId: '' })
   const queryClient = useQueryClient()
 
   // ファイル情報を取得
@@ -45,9 +52,11 @@ export default function FileDetailPage() {
     onSuccess: () => {
       toast.success('リクエストを承認しました')
       queryClient.invalidateQueries({ queryKey: ['file-requests', fileId] })
+      setConfirmModal({ isOpen: false, type: 'approve', requestId: '' })
     },
     onError: () => {
       toast.error('リクエストの承認に失敗しました')
+      setConfirmModal({ isOpen: false, type: 'approve', requestId: '' })
     },
   })
 
@@ -57,9 +66,11 @@ export default function FileDetailPage() {
     onSuccess: () => {
       toast.success('リクエストを拒否しました')
       queryClient.invalidateQueries({ queryKey: ['file-requests', fileId] })
+      setConfirmModal({ isOpen: false, type: 'reject', requestId: '' })
     },
     onError: () => {
       toast.error('リクエストの拒否に失敗しました')
+      setConfirmModal({ isOpen: false, type: 'reject', requestId: '' })
     },
   })
 
@@ -70,6 +81,37 @@ export default function FileDetailPage() {
       setShareUrlCopied(true)
       setTimeout(() => setShareUrlCopied(false), 2000)
     })
+  }
+
+  // 確認モーダルのハンドリング
+  const handleApproveClick = (requestId: string, reason?: string) => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'approve',
+      requestId,
+      reason
+    })
+  }
+
+  const handleRejectClick = (requestId: string, reason?: string) => {
+    setConfirmModal({
+      isOpen: true,
+      type: 'reject',
+      requestId,
+      reason
+    })
+  }
+
+  const handleConfirm = () => {
+    if (confirmModal.type === 'approve') {
+      approveMutation.mutate(confirmModal.requestId)
+    } else {
+      rejectMutation.mutate(confirmModal.requestId)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }))
   }
 
 
@@ -314,28 +356,20 @@ export default function FileDetailPage() {
                               {request.status === 'pending' && (
                                 <div className="flex space-x-2">
                                   <button
-                                    onClick={() => approveMutation.mutate(request.request_id)}
-                                    disabled={approveMutation.isPending}
+                                    onClick={() => handleApproveClick(request.request_id, request.reason)}
+                                    disabled={approveMutation.isPending || rejectMutation.isPending}
                                     className="inline-flex items-center space-x-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
-                                    {approveMutation.isPending ? (
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    ) : (
-                                      <CheckCircle className="h-4 w-4" />
-                                    )}
-                                    <span>{approveMutation.isPending ? '処理中...' : '承認'}</span>
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>承認</span>
                                   </button>
                                   <button
-                                    onClick={() => rejectMutation.mutate(request.request_id)}
-                                    disabled={rejectMutation.isPending}
+                                    onClick={() => handleRejectClick(request.request_id, request.reason)}
+                                    disabled={approveMutation.isPending || rejectMutation.isPending}
                                     className="inline-flex items-center space-x-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
-                                    {rejectMutation.isPending ? (
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                    ) : (
-                                      <XCircle className="h-4 w-4" />
-                                    )}
-                                    <span>{rejectMutation.isPending ? '処理中...' : '拒否'}</span>
+                                    <XCircle className="h-4 w-4" />
+                                    <span>拒否</span>
                                   </button>
                                 </div>
                               )}
@@ -348,6 +382,26 @@ export default function FileDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* 確認モーダル */}
+            <ConfirmModal
+              isOpen={confirmModal.isOpen}
+              onClose={handleCloseModal}
+              onConfirm={handleConfirm}
+              title={confirmModal.type === 'approve' ? 'リクエストを承認しますか？' : 'リクエストを拒否しますか？'}
+              message={
+                confirmModal.type === 'approve'
+                  ? confirmModal.reason
+                    ? `理由「${confirmModal.reason}」のアクセスリクエストを承認し、ファイルへのアクセスを許可します。この操作は取り消すことができません。`
+                    : 'このアクセスリクエストを承認し、ファイルへのアクセスを許可します。この操作は取り消すことができません。'
+                  : confirmModal.reason
+                    ? `理由「${confirmModal.reason}」のアクセスリクエストを拒否します。この操作は取り消すことができません。`
+                    : 'このアクセスリクエストを拒否します。この操作は取り消すことができません。'
+              }
+              confirmText={confirmModal.type === 'approve' ? '承認する' : '拒否する'}
+              type={confirmModal.type === 'approve' ? 'success' : 'danger'}
+              isLoading={approveMutation.isPending || rejectMutation.isPending}
+            />
           </>
         ) : (
           <div className="glass rounded-2xl p-12 text-center modern-shadow">
