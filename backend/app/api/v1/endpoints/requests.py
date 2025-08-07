@@ -259,11 +259,11 @@ async def reject_request(
                 detail="Request not found"
             )
         
-        # ステータスチェック
-        if access_request.status != RequestStatus.PENDING.value:
+        # ステータスチェック（拒否済みの場合のみエラー）
+        if access_request.status == RequestStatus.REJECTED.value:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Request is already {access_request.status}"
+                detail="Request is already rejected"
             )
         
         # リクエストを拒否
