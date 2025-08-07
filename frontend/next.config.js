@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 本番環境でstandalone出力を有効化（Dockerで最適化）
-  output: 'standalone',
-  
   // 画像最適化の設定
   images: {
     domains: ['localhost'],
