@@ -63,7 +63,7 @@ async def get_share_info(share_id: str) -> FileInfoResponse:
             created_at=file.createdAt,
             expires_at=file.expiresAt,
             max_downloads=file.maxDownloads,
-            download_count=len(file.downloads)
+            download_count=len(set(download.requestId for download in file.downloads))
         )
         
     except HTTPException:

@@ -44,8 +44,6 @@ const FileUploader: React.FC = () => {
       return
     }
 
-    const progressId = Date.now().toString()
-    
     // 進捗状態を初期化
     setUploadProgress(prev => [...prev, {
       file,

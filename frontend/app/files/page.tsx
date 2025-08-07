@@ -246,6 +246,14 @@ function FilesPageContent() {
                                 ダウンロード禁止
                               </span>
                             )}
+
+                            {/* ダウンロード上限到達表示 */}
+                            {file.download_count >= file.max_downloads && (
+                              <span className="inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-700">
+                                <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                ダウンロード上限到達
+                              </span>
+                            )}
                           </div>
 
                           {/* 操作ボタン */}

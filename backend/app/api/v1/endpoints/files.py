@@ -392,7 +392,7 @@ async def get_recent_files(
                 created_at=file.createdAt,
                 expires_at=file.expiresAt,
                 max_downloads=file.maxDownloads,
-                download_count=len(file.downloads),
+                download_count=len(set(download.requestId for download in file.downloads)),
                 request_count=all_requests,
                 pending_request_count=pending_requests,
                 status=FileStatus(file.uploadStatus),
@@ -443,7 +443,7 @@ async def get_file_info(file_id: str) -> FileInfoResponse:
             created_at=file.createdAt,
             expires_at=file.expiresAt,
             max_downloads=file.maxDownloads,
-            download_count=len(file.downloads),
+            download_count=len(set(download.requestId for download in file.downloads)),
             blocks_requests=file.blocksRequests,
             blocks_downloads=file.blocksDownloads
         )
@@ -519,7 +519,7 @@ async def update_file(
             created_at=updated_file.createdAt,
             expires_at=updated_file.expiresAt,
             max_downloads=updated_file.maxDownloads,
-            download_count=len(updated_file.downloads),
+            download_count=len(set(download.requestId for download in updated_file.downloads)),
             blocks_requests=updated_file.blocksRequests,
             blocks_downloads=updated_file.blocksDownloads
         )

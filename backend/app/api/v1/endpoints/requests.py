@@ -68,11 +68,12 @@ async def create_access_request(
                 detail="This share has expired"
             )
         
-        # ダウンロード数チェック
-        download_count = await prisma.downloadlog.count(
+        # ダウンロード数チェック（ユニークなリクエストID数で制限）
+        download_logs = await prisma.downloadlog.find_many(
             where={"fileId": file.id}
         )
-        if download_count >= file.maxDownloads:
+        unique_request_count = len(set(log.requestId for log in download_logs))
+        if unique_request_count >= file.maxDownloads:
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,
                 detail="Download limit exceeded"

@@ -133,7 +133,7 @@ class DashboardService:
                     status=file.uploadStatus,
                     share_id=file.shareId,
                     request_count=len(file.requests) if file.requests else 0,
-                    download_count=len(file.downloads) if file.downloads else 0
+                    download_count=len(set(download.requestId for download in file.downloads)) if file.downloads else 0
                 ))
             
             return activities

@@ -112,13 +112,14 @@ async def download_file(request_id: str, req: Request):
                 detail="File has expired"
             )
         
-        # ダウンロード回数チェック
-        download_count = await prisma.downloadlog.count(
+        # ダウンロード回数チェック（ユニークなリクエストID数で制限）
+        download_logs = await prisma.downloadlog.find_many(
             where={"fileId": file.id}
         )
-        logger.info(f"File {file.id} download count: {download_count}/{file.maxDownloads}")
-        if download_count >= file.maxDownloads:
-            logger.warning(f"File {file.id} download limit exceeded: {download_count}/{file.maxDownloads}")
+        unique_request_count = len(set(log.requestId for log in download_logs))
+        logger.info(f"File {file.id} unique request count: {unique_request_count}/{file.maxDownloads}")
+        if unique_request_count >= file.maxDownloads:
+            logger.warning(f"File {file.id} download limit exceeded: {unique_request_count}/{file.maxDownloads}")
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,
                 detail="Download limit exceeded"
