@@ -93,7 +93,7 @@ export const api = {
   },
 
   async getFileRequests(fileId: string, page: number = 1, status?: string) {
-    return RequestsService.getFileRequests(fileId, page, 20, status as any)
+    return RequestsService.getFileRequests(fileId)
   },
 
   async getRequestStatus(requestId: string) {

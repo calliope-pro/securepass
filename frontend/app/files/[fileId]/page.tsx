@@ -141,7 +141,7 @@ export default function FileDetailPage() {
               <div className="inline-flex p-2 bg-red-500/10 rounded-full">
                 <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
-              <p className="text-red-600 font-medium">{error}</p>
+              <p className="text-red-600 font-medium">{error?.message || 'エラーが発生しました'}</p>
             </div>
           </div>
         )}

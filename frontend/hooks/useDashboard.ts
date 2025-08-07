@@ -3,7 +3,6 @@ import { DashboardService, RequestsService } from '@/lib/api/generated'
 import type { 
   DashboardStatsResponse, 
   FileActivity, 
-  RequestInfo, 
   ApproveRequestRequest,
   RejectRequestRequest 
 } from '@/lib/api/generated'
@@ -56,7 +55,7 @@ export const useFileActivities = (limit: number = 10, enabled: boolean = true) =
 export const useFileRequests = (fileId: string, page: number = 1, perPage: number = 20) => {
   return useQuery({
     queryKey: ['requests', 'file', fileId, page, perPage],
-    queryFn: () => RequestsService.getFileRequests(fileId, page, perPage, 'pending'),
+    queryFn: () => RequestsService.getFileRequests(fileId),
     enabled: !!fileId,
     staleTime: 10000, // 10秒間キャッシュ
     refetchOnWindowFocus: false
@@ -76,7 +75,7 @@ export const usePendingRequests = () => {
 
       // 各ファイルの承認待ちリクエストを取得
       const requestPromises = activities.map(file => 
-        RequestsService.getFileRequests(file.id, 1, 50, 'pending')
+        RequestsService.getFileRequests(file.id)
           .then(response => response.requests)
           .catch(() => [])
       )

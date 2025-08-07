@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery } from '@tanstack/react-query'
@@ -7,7 +8,7 @@ import { FilesService } from '@/lib/api/generated'
 import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Clock, Upload } from 'lucide-react'
 import { formatBytes } from '@/lib/utils'
 
-export default function FilesPage() {
+function FilesPageContent() {
   const { isAuthenticated, isLoading } = useAuth0()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -105,7 +106,7 @@ export default function FilesPage() {
               <div className="inline-flex p-2 bg-red-500/10 rounded-full">
                 <Shield className="h-5 w-5 text-red-500" />
               </div>
-              <p className="text-red-600 font-medium">{error}</p>
+              <p className="text-red-600 font-medium">{error?.message || 'エラーが発生しました'}</p>
             </div>
           </div>
         )}
@@ -184,16 +185,17 @@ export default function FilesPage() {
                           </td>
                           <td className="py-6 px-8">
                             <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold ${
-                              file.status === 'active' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
-                              file.status === 'expired' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
+                              file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
+                              file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
                               'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
                             }`}>
                               <div className={`w-2 h-2 rounded-full mr-3 ${
-                                file.status === 'active' ? 'bg-green-500' :
-                                file.status === 'expired' ? 'bg-red-500' : 'bg-gray-500'
+                                file.status === 'completed' ? 'bg-green-500' :
+                                file.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
                               }`}></div>
-                              {file.status === 'active' ? 'アクティブ' :
-                               file.status === 'expired' ? '期限切れ' : file.status}
+                              {file.status === 'completed' ? 'アップロード完了' :
+                               file.status === 'failed' ? 'アップロード失敗' : 
+                               file.status === 'uploading' ? 'アップロード中' : file.status}
                             </span>
                           </td>
                           <td className="py-6 px-8">
@@ -308,5 +310,13 @@ export default function FilesPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function FilesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FilesPageContent />
+    </Suspense>
   )
 }

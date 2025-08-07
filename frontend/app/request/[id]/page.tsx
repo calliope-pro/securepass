@@ -138,7 +138,6 @@ export default function RequestPage() {
                             <div>
                               <p className="font-medium text-gray-900">匿名ユーザー</p>
                               <p className="text-xs text-gray-600 font-mono">リクエストID: {request.request_id}</p>
-                              <p className="text-xs text-gray-600 font-mono">IP: {request.ip_hash.slice(0, 12)}...</p>
                             </div>
                           </div>
                           
@@ -213,7 +212,6 @@ export default function RequestPage() {
                           <div>
                             <p className="text-sm font-medium text-gray-700">匿名ユーザー</p>
                             <p className="text-xs text-gray-600 font-mono">リクエストID: {request.request_id}</p>
-                            <p className="text-xs text-gray-600 font-mono">IP: {request.ip_hash.slice(0, 8)}...</p>
                           </div>
                         </div>
                         
