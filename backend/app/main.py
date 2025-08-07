@@ -57,9 +57,12 @@ app.include_router(api_router, prefix="/api/v1")
 async def health_check():
     """ヘルスチェック"""
     try:
-        # データベース接続確認
-        await prisma.execute_raw("SELECT 1")
-        db_status = "healthy"
+        # データベース接続確認（本番環境では軽量な確認）
+        if prisma.is_connected():
+            await prisma.execute_raw("SELECT 1")
+            db_status = "healthy"
+        else:
+            db_status = "disconnected"
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
         db_status = "unhealthy"
@@ -67,6 +70,7 @@ async def health_check():
     return {
         "status": "healthy" if db_status == "healthy" else "degraded",
         "version": "0.1.0",
+        "environment": settings.ENVIRONMENT,
         "services": {
             "database": db_status,
             "api": "healthy"

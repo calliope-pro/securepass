@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
+        "https://*.up.railway.app",  # Railway本番環境（新形式）
     ]
     
     # ファイルアップロード設定

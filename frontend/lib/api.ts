@@ -92,7 +92,7 @@ export const api = {
     return RequestsService.createAccessRequest(data)
   },
 
-  async getFileRequests(fileId: string, page: number = 1, status?: string) {
+  async getFileRequests(fileId: string) {
     return RequestsService.getFileRequests(fileId)
   },
 

@@ -4,8 +4,8 @@ import { Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useQuery } from '@tanstack/react-query'
-import { FilesService } from '@/lib/api/generated'
-import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Clock, Upload } from 'lucide-react'
+import { FilesService, RecentFileItem } from '@/lib/api/generated'
+import { FileText, Calendar, Download, Eye, ChevronLeft, ChevronRight, FolderOpen, Shield, ArrowRight, Activity, Upload } from 'lucide-react'
 import { formatBytes } from '@/lib/utils'
 
 function FilesPageContent() {
@@ -154,7 +154,7 @@ function FilesPageContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {files.map((file) => (
+                      {files.map((file: RecentFileItem) => (
                         <tr key={file.file_id} className="border-b border-gray-100/50 hover:bg-white/50 transition-all duration-200 group">
                           <td className="py-6 px-8">
                             <div className="flex items-center space-x-4">
@@ -266,7 +266,7 @@ function FilesPageContent() {
                     {/* ページ番号 */}
                     <div className="flex space-x-2">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum
+                        let pageNum: number
                         if (totalPages <= 5) {
                           pageNum = i + 1
                         } else if (currentPage <= 3) {

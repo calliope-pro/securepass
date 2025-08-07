@@ -124,7 +124,7 @@ export default function RequestPage() {
                 </div>
                 
                 <div className="space-y-4">
-                  {pendingRequests.map((request) => (
+                  {pendingRequests.map((request: any) => (
                     <div
                       key={request.request_id}
                       className="glass-dark rounded-xl p-6 hover:scale-[1.01] transition-all duration-200"
@@ -201,7 +201,7 @@ export default function RequestPage() {
                 </div>
                 
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {processedRequests.map((request) => (
+                  {processedRequests.map((request: any) => (
                     <div
                       key={request.request_id}
                       className="glass-dark rounded-lg p-4 opacity-80 hover:opacity-100 transition-opacity"
