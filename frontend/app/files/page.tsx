@@ -119,10 +119,10 @@ function FilesPageContent() {
           </div>
         ) : (
           <>
-            {/* ファイル一覧テーブル */}
-            <div className="glass rounded-2xl overflow-hidden modern-shadow ">
+            {/* ファイル一覧 */}
+            <div className="space-y-6">
               {files.length === 0 ? (
-                <div className="text-center py-16">
+                <div className="glass rounded-2xl text-center py-16 modern-shadow">
                   <div className="inline-flex p-6 bg-gradient-to-r from-gray-500/10 to-slate-500/10 rounded-full mb-6">
                     <FileText className="h-16 w-16 text-gray-400" />
                   </div>
@@ -140,105 +140,88 @@ function FilesPageContent() {
                   </button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="glass-dark border-b border-gray-200/50">
-                      <tr>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">ファイル名</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">サイズ</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">作成日時</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">ステータス</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">ダウンロード</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">リクエスト</th>
-                        <th className="text-left py-6 px-8 font-bold text-gray-800">操作</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {files.map((file: RecentFileItem) => (
-                        <tr key={file.file_id} className="border-b border-gray-100/50 hover:bg-white/50 transition-all duration-200 group">
-                          <td className="py-6 px-8">
-                            <div className="flex items-center space-x-4">
-                              <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                                <FileText className="h-6 w-6 text-blue-600" />
+                <>
+                  {files.map((file: RecentFileItem) => (
+                    <div key={file.file_id} className="glass rounded-2xl p-4 sm:p-6 modern-shadow hover:bg-white/50 transition-all duration-200 group">
+                      <div className="space-y-4">
+                        {/* ファイル情報 */}
+                        <div className="flex items-start space-x-4">
+                          <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                            <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-lg sm:text-xl mb-2 break-words">{file.filename}</h3>
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-600 truncate">{file.mime_type}</span>
                               </div>
-                              <div>
-                                <p className="font-bold text-gray-900 text-lg">{file.filename}</p>
-                                <p className="text-sm text-gray-500 font-medium">{file.mime_type}</p>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-bold text-blue-600">{formatBytes(file.size)}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                                <span className="text-gray-600 truncate">{formatDate(file.created_at)}</span>
                               </div>
                             </div>
-                          </td>
-                          <td className="py-6 px-8">
-                            <div className="font-semibold text-gray-900">
-                              {formatBytes(file.size)}
+                          </div>
+                        </div>
+
+                        {/* ステータス */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span className={`inline-flex items-center px-3 py-2 rounded-xl text-xs sm:text-sm font-bold ${
+                            file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
+                            file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
+                            'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
+                          }`}>
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              file.status === 'completed' ? 'bg-green-500' :
+                              file.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                            }`}></div>
+                            {file.status === 'completed' ? 'アップロード完了' :
+                             file.status === 'failed' ? 'アップロード失敗' : 
+                             file.status === 'uploading' ? 'アップロード中' : file.status}
+                          </span>
+
+                          {/* 操作ボタン */}
+                          <button
+                            onClick={() => router.push(`/files/${file.file_id}`)}
+                            className="inline-flex items-center space-x-2 px-4 py-2 sm:px-6 sm:py-3 animated-gradient text-white rounded-xl font-semibold hover:scale-105 transition-all duration-300 text-sm sm:text-base"
+                          >
+                            <span>詳細</span>
+                            <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+                        </div>
+
+                        {/* 統計情報 */}
+                        <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-3 border-t border-gray-100">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg">
+                              <Download className="h-4 w-4 text-purple-600" />
                             </div>
-                          </td>
-                          <td className="py-6 px-8">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-gradient-to-r from-gray-500/10 to-slate-500/10 rounded-lg">
-                                <Calendar className="h-4 w-4 text-gray-600" />
-                              </div>
-                              <div>
-                                <div className="font-medium text-gray-900">{formatDate(file.created_at).split(' ')[0]}</div>
-                                <div className="text-sm text-gray-500">{formatDate(file.created_at).split(' ')[1]}</div>
-                              </div>
+                            <div className="text-sm">
+                              <div className="font-bold text-gray-900">{file.download_count} / {file.max_downloads}</div>
+                              <div className="text-gray-500 text-xs">ダウンロード</div>
                             </div>
-                          </td>
-                          <td className="py-6 px-8">
-                            <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold ${
-                              file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
-                              file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
-                              'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
-                            }`}>
-                              <div className={`w-2 h-2 rounded-full mr-3 ${
-                                file.status === 'completed' ? 'bg-green-500' :
-                                file.status === 'failed' ? 'bg-red-500' : 'bg-gray-500'
-                              }`}></div>
-                              {file.status === 'completed' ? 'アップロード完了' :
-                               file.status === 'failed' ? 'アップロード失敗' : 
-                               file.status === 'uploading' ? 'アップロード中' : file.status}
-                            </span>
-                          </td>
-                          <td className="py-6 px-8">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg">
-                                <Download className="h-4 w-4 text-purple-600" />
-                              </div>
-                              <div>
-                                <div className="font-bold text-gray-900">{file.download_count} / {file.max_downloads}</div>
-                                <div className="text-sm text-gray-500">ダウンロード</div>
-                              </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-lg">
+                              <Eye className="h-4 w-4 text-orange-600" />
                             </div>
-                          </td>
-                          <td className="py-6 px-8">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-lg">
-                                <Eye className="h-4 w-4 text-orange-600" />
-                              </div>
-                              <div>
-                                <div className="font-bold text-gray-900">{file.request_count}</div>
-                                <div className="text-sm text-gray-500">リクエスト</div>
-                              </div>
+                            <div className="text-sm">
+                              <div className="font-bold text-gray-900">{file.request_count}</div>
+                              <div className="text-gray-500 text-xs">リクエスト</div>
                             </div>
-                          </td>
-                          <td className="py-6 px-8">
-                            <button
-                              onClick={() => router.push(`/files/${file.file_id}`)}
-                              className="inline-flex items-center space-x-2 px-4 py-2 animated-gradient text-white rounded-lg font-semibold text-sm hover:scale-105 transition-all duration-300"
-                            >
-                              <span>詳細</span>
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
 
             {/* ページネーション */}
-            {totalPages > 1 && (
+            
               <div className="glass rounded-2xl p-6 modern-shadow">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-gray-700">
@@ -305,7 +288,7 @@ function FilesPageContent() {
                   </div>
                 </div>
               </div>
-            )}
+            
           </>
         )}
       </div>
