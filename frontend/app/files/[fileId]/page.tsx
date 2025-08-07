@@ -292,7 +292,7 @@ export default function FileDetailPage() {
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
                   <button
                     onClick={handleCopyShareUrl}
-                    disabled={fileInfo.is_invalidated || isExpired(fileInfo.expires_at)}
+                    disabled={fileInfo.blocks_downloads || isExpired(fileInfo.expires_at)}
                     className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Copy className="h-5 w-5" />
