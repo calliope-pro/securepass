@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Shield, Zap, Lock, User, LogOut, FileText, BarChart3 } from 'lucide-react'
+import { Shield, Zap, Lock, User, LogOut, FileText, BarChart3, Crown } from 'lucide-react'
 import { useAuth0 } from '@/contexts/Auth0Context'
 import { useState } from 'react'
 
@@ -44,6 +44,13 @@ export function Auth0Header() {
               >
                 <Lock className="h-4 w-4 text-purple-500 group-hover:text-purple-600" />
                 <span className="font-medium text-gray-700 group-hover:text-gray-900">使い方</span>
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="group flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-white/50 transition-all duration-200"
+              >
+                <Crown className="h-4 w-4 text-yellow-500 group-hover:text-yellow-600" />
+                <span className="font-medium text-gray-700 group-hover:text-gray-900">料金</span>
               </Link>
             </div>
 
@@ -167,6 +174,14 @@ export function Auth0Header() {
               >
                 <Lock className="h-5 w-5 text-purple-500" />
                 <span className="font-medium text-gray-700">使い方</span>
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-all duration-200"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                <Crown className="h-5 w-5 text-yellow-500" />
+                <span className="font-medium text-gray-700">料金</span>
               </Link>
               
               {isAuthenticated && user ? (

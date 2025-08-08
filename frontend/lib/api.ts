@@ -7,6 +7,7 @@ import {
   DownloadService,
   StatsService,
   DashboardService,
+  SubscriptionService,
   type InitiateUploadRequest,
   type ChunkUploadRequest,
   type CompleteUploadRequest,
@@ -27,6 +28,8 @@ declare const process: {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!
 console.log('API_URL configured as:', API_URL)
+
+// OpenAPI.BASEを即座に設定（Auth0Context.tsxでも設定されるが、タイミング問題を防ぐため）
 OpenAPI.BASE = API_URL
 
 // キャッシュ無効化ヘッダー
@@ -146,7 +149,7 @@ export const api = {
       // レスポンスが期待通りでない場合は直接fetchを使用
       const token = typeof OpenAPI.TOKEN === 'function' ? await (OpenAPI.TOKEN as Function)() : OpenAPI.TOKEN
       
-      const fetchResponse = await fetch(`${OpenAPI.BASE}/api/v1/download/${requestId}/file`, {
+      const fetchResponse = await fetch(`${API_URL}/api/v1/download/${requestId}/file`, {
         method: 'GET',
         headers: {
           'Accept': 'application/octet-stream',
@@ -207,6 +210,27 @@ export const api = {
 
   async getFileActivities(limit: number = 20) {
     return DashboardService.getFileActivitiesApiV1DashboardFilesGet(limit)
+  },
+
+  // Subscription
+  async getPlans() {
+    return SubscriptionService.getPlansApiV1SubscriptionPlansGet()
+  },
+
+  async getCurrentSubscription() {
+    return SubscriptionService.getCurrentSubscriptionApiV1SubscriptionSubscriptionGet()
+  },
+
+  async getUserUsage() {
+    return SubscriptionService.getUserUsageApiV1SubscriptionUsageGet()
+  },
+
+  async createCheckoutSession(data: { plan_id: string; success_url: string; cancel_url: string }) {
+    return SubscriptionService.createCheckoutSessionApiV1SubscriptionCheckoutPost(data)
+  },
+
+  async createCustomerPortalSession(data: { return_url: string }) {
+    return SubscriptionService.createCustomerPortalSessionApiV1SubscriptionCustomerPortalPost(data)
   },
 }
 

@@ -37,13 +37,16 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 5 * 1024 * 1024  # 5MB
     UPLOAD_SESSION_EXPIRE_HOURS: int = 24
     
-    
     # セキュリティ用Salt
     IP_HASH_SALT: str = os.environ["IP_HASH_SALT"]
     
     # Auth0認証
     AUTH0_DOMAIN: str = os.environ["AUTH0_DOMAIN"]
     AUTH0_AUDIENCE: str = os.environ["AUTH0_AUDIENCE"]
+    
+    # Stripe決済
+    STRIPE_SECRET_KEY: str = os.environ["STRIPE_SECRET_KEY"]
+    STRIPE_WEBHOOK_SECRET: str = os.environ["STRIPE_WEBHOOK_SECRET"]
 
 
     class Config:

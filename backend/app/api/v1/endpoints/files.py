@@ -18,6 +18,7 @@ from app.core.security import security
 from app.core.storage import storage
 from app.core.config import settings
 from app.core.auth import require_auth
+from app.services.plan_limit_service import PlanLimitService
 from datetime import datetime, timezone
 import base64
 import json
@@ -41,7 +42,12 @@ async def initiate_upload(
     3. チャンク用の署名付きURLを生成
     """
     try:
-        # ファイルサイズチェック
+        # プラン制限チェック
+        await PlanLimitService.check_file_size_limit(current_user, request.size)
+        await PlanLimitService.check_monthly_upload_limit(current_user)
+        await PlanLimitService.check_total_storage_limit(current_user, request.size)
+        
+        # ファイルサイズチェック（システム全体の制限）
         if request.size > settings.MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { DashboardService } from '@/lib/api/generated/services/DashboardService'
 import { formatDate } from '@/lib/utils'
+import SubscriptionCard from '@/components/SubscriptionCard'
 
 const quickActions = [
   {
@@ -196,6 +197,9 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Subscription Card */}
+        <SubscriptionCard />
+
         {/* Quick Actions */}
         <div className="glass rounded-2xl p-8 modern-shadow">
           <div className="text-center mb-8">
@@ -337,10 +341,13 @@ export default function DashboardPage() {
             より大きなファイル、長期保存、高度な分析機能で、
             ビジネスレベルのセキュリティを体験しませんか？
           </p>
-          <button className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
             <Sparkles className="h-6 w-6" />
-            <span>Pro機能を見る</span>
-          </button>
+            <span>プランを見る</span>
+          </Link>
         </div>
       </div>
     </div>
