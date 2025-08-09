@@ -47,14 +47,12 @@ jobs:
           # Railway CLIをインストール
           npm install -g @railway/cli@latest
           
-          # プロジェクトトークンを使用して直接デプロイ
           echo "Railway CLI version:"
           railway --version
           echo "Starting deployment with project token..."
           
-          # railway.tomlの設定に基づいて全サービスをデプロイ
-          # サービスが存在しない場合は自動生成される
-          railway up
+          # プロジェクトIDと環境IDを明示的に指定してデプロイ
+          railway up --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
 
       - name: Check Deployment Status
         run: |
