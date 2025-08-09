@@ -119,10 +119,10 @@ jobs:
           
           # Backend custom domain
           echo "Setting backend domain..."
-          railway domain --service backend securepass-backend-mvp.up.railway.app || echo "Backend domain setup failed"
+          railway domain --service backend -p 8000 securepass-backend-mvp.up.railway.app || echo "Backend domain setup failed"
           
           # Frontend custom domain
           echo "Setting frontend domain..."
-          railway domain --service frontend securepass-frontend-mvp.up.railway.app || echo "Frontend domain setup failed"
+          railway domain --service frontend -p 3000 securepass-frontend-mvp.up.railway.app || echo "Frontend domain setup failed"
           
           echo "Domain configuration completed"
