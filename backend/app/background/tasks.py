@@ -1,21 +1,16 @@
 """
-バックグラウンドタスク
-期限切れファイルのストレージクリーンアップ処理
+ARQ バックグラウンドタスク
+期限切れファイルとセッションのクリーンアップ処理
 """
 
-import asyncio
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
+from typing import Dict, Any
 
 import aioboto3
 from botocore.exceptions import ClientError
-import dramatiq
-from dramatiq.brokers.redis import RedisBroker
-from dramatiq.results import Results
-from dramatiq.results.backends.redis import RedisBackend
 
 from app.core.database import prisma
-from app.core.storage import R2Storage
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -45,42 +40,10 @@ async def delete_chunk_from_r2(key: str) -> bool:
             return False
 
 
-# Redis結果バックエンド設定
-result_backend = RedisBackend(url=settings.REDIS_URL)
-
-# Dramatiq Redisブローカー設定
-redis_broker = RedisBroker(url=settings.REDIS_URL)
-redis_broker.add_middleware(Results(backend=result_backend))
-dramatiq.set_broker(redis_broker)
-
-
-@dramatiq.actor(max_retries=3, min_backoff=300000)  # 5分後にリトライ、最大3回
-def cleanup_expired_files_storage():
+async def cleanup_expired_files_storage(ctx: Dict[str, Any], **kwargs) -> Dict[str, Any]:
     """期限切れファイルのストレージクリーンアップタスク"""
-    try:
-        # 同期関数内で非同期処理を実行
-        result = asyncio.run(_cleanup_expired_files_storage_async())
-        logger.info(f"Storage cleanup completed: {result}")
-        return result
-    except Exception as e:
-        logger.error(f"Storage cleanup failed: {e}")
-        raise  # Dramatiqが自動的にリトライを処理
-
-
-@dramatiq.actor(max_retries=3, min_backoff=300000)  # 5分後にリトライ、最大3回
-def cleanup_expired_upload_sessions():
-    """期限切れアップロードセッションのクリーンアップタスク"""
-    try:
-        result = asyncio.run(_cleanup_expired_upload_sessions_async())
-        logger.info(f"Upload session cleanup completed: {result}")
-        return result
-    except Exception as e:
-        logger.error(f"Upload session cleanup failed: {e}")
-        raise  # Dramatiqが自動的にリトライを処理
-
-
-async def _cleanup_expired_files_storage_async() -> dict:
-    """期限切れファイルのストレージクリーンアップ（非同期実装）"""
+    logger.info("Starting expired files storage cleanup")
+    
     current_time = datetime.now(timezone.utc)
     
     # 常に新しい接続を作成（ワーカープロセス間の接続問題を回避）
@@ -119,7 +82,6 @@ async def _cleanup_expired_files_storage_async() -> dict:
                 if file.chunks:
                     for chunk in file.chunks:
                         try:
-                            # 各削除操作で新しいセッションを使用してEvent loop closedエラーを回避
                             await delete_chunk_from_r2(chunk.r2Key)
                             logger.debug(f"Deleted storage chunk: {chunk.r2Key}")
                         except Exception as e:
@@ -127,7 +89,6 @@ async def _cleanup_expired_files_storage_async() -> dict:
                             errors.append(f"Storage deletion failed for chunk {chunk.id}: {e}")
                 
                 # ファイルを無効化としてマーク（DBレコードは保持）
-                # 期限切れファイルは両方のフラグを立てて完全アクセス不可にする
                 await prisma.file.update(
                     where={"id": file.id},
                     data={
@@ -143,14 +104,17 @@ async def _cleanup_expired_files_storage_async() -> dict:
                 logger.error(f"Failed to cleanup file {file.id}: {e}")
                 errors.append(f"File {file.id}: {e}")
         
-        return {
+        result = {
             "processed_files": processed_count,
             "total_expired": len(expired_files),
             "errors": errors
         }
         
+        logger.info(f"Storage cleanup completed: {result}")
+        return result
+        
     except Exception as e:
-        logger.error(f"Error in _cleanup_expired_files_storage_async: {e}")
+        logger.error(f"Error in cleanup_expired_files_storage: {e}")
         return {
             "processed_files": 0,
             "total_expired": 0,
@@ -158,8 +122,10 @@ async def _cleanup_expired_files_storage_async() -> dict:
         }
 
 
-async def _cleanup_expired_upload_sessions_async() -> dict:
-    """期限切れアップロードセッションのクリーンアップ（非同期実装）"""
+async def cleanup_expired_upload_sessions(ctx: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+    """期限切れアップロードセッションのクリーンアップタスク"""
+    logger.info("Starting expired upload sessions cleanup")
+    
     current_time = datetime.now(timezone.utc)
     
     # 常に新しい接続を作成（ワーカープロセス間の接続問題を回避）
@@ -169,7 +135,6 @@ async def _cleanup_expired_upload_sessions_async() -> dict:
         logger.warning(f"Prisma already connected or connection failed: {e}")
         
     try:
-        
         # 期限切れアップロードセッションを検索
         expired_sessions = await prisma.uploadsession.find_many(
             where={
@@ -189,9 +154,6 @@ async def _cleanup_expired_upload_sessions_async() -> dict:
         
         for session in expired_sessions:
             try:
-                # UploadSessionにはchunksがないため、メタデータをチェックしてクリーンアップ
-                # 必要に応じてsession.metadataからファイル情報を取得してストレージから削除
-                
                 # セッションを削除（未完了セッションなのでDBからも削除）
                 await prisma.uploadsession.delete(where={"id": session.id})
                 
@@ -202,14 +164,17 @@ async def _cleanup_expired_upload_sessions_async() -> dict:
                 logger.error(f"Failed to delete upload session {session.id}: {e}")
                 errors.append(f"Session {session.id}: {e}")
         
-        return {
+        result = {
             "deleted_sessions": deleted_count,
             "total_expired": len(expired_sessions), 
             "errors": errors
         }
         
+        logger.info(f"Upload session cleanup completed: {result}")
+        return result
+        
     except Exception as e:
-        logger.error(f"Error in _cleanup_expired_upload_sessions_async: {e}")
+        logger.error(f"Error in cleanup_expired_upload_sessions: {e}")
         return {
             "deleted_sessions": 0,
             "total_expired": 0,

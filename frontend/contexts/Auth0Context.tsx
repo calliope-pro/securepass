@@ -15,6 +15,7 @@ interface Auth0ContextType {
   signInWithProvider: (provider: 'github' | 'google') => Promise<void>
   signOut: () => Promise<void>
   linkAccount: () => Promise<void>
+  getAccessTokenSilently: () => Promise<string>
 }
 
 const Auth0Context = createContext<Auth0ContextType | undefined>(undefined)
@@ -79,7 +80,10 @@ export const Auth0Provider: React.FC<Auth0ProviderProps> = ({ children }) => {
         }
 
         // OpenAPI設定
-        OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL!
+        const apiDomain = process.env.NEXT_PUBLIC_API_DOMAIN!
+        const protocol = apiDomain.startsWith('localhost') || apiDomain.startsWith('127.0.0.1') ? 'http' : 'https'
+        OpenAPI.BASE = `${protocol}://${apiDomain}`
+        console.log('OpenAPI BASE URL:', OpenAPI.BASE)
         
         // 認証状態をチェック
         const isAuth = await auth0Instance.isAuthenticated()
@@ -210,6 +214,19 @@ export const Auth0Provider: React.FC<Auth0ProviderProps> = ({ children }) => {
     }
   }
 
+  const getAccessTokenSilently = async (): Promise<string> => {
+    if (!auth0Client) {
+      throw new Error('Auth0 client not initialized')
+    }
+    
+    try {
+      return await auth0Client.getTokenSilently()
+    } catch (error) {
+      console.error('Failed to get access token:', error)
+      throw new Error('Failed to get access token')
+    }
+  }
+
   const value = {
     auth0Client,
     user,
@@ -219,7 +236,8 @@ export const Auth0Provider: React.FC<Auth0ProviderProps> = ({ children }) => {
     signIn,
     signInWithProvider,
     signOut,
-    linkAccount
+    linkAccount,
+    getAccessTokenSilently
   }
 
   return (

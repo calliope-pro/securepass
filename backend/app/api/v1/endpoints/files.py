@@ -1,5 +1,5 @@
 # backend/app/api/v1/endpoints/files.py
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from app.schemas.file import (
     InitiateUploadRequest,
     InitiateUploadResponse,
@@ -18,6 +18,7 @@ from app.core.security import security
 from app.core.storage import storage
 from app.core.config import settings
 from app.core.auth import require_auth
+from app.services.plan_limit_service import PlanLimitService
 from datetime import datetime, timezone
 import base64
 import json
@@ -31,6 +32,7 @@ router = APIRouter()
 @router.post("/upload/initiate", response_model=InitiateUploadResponse, operation_id="initiate_upload")
 async def initiate_upload(
     request: InitiateUploadRequest,
+    background_tasks: BackgroundTasks,
     current_user: AuthUser = Depends(require_auth)
 ) -> InitiateUploadResponse:
     """
@@ -41,7 +43,12 @@ async def initiate_upload(
     3. チャンク用の署名付きURLを生成
     """
     try:
-        # ファイルサイズチェック
+        # プラン制限チェック
+        await PlanLimitService.check_file_size_limit(current_user, request.size)
+        await PlanLimitService.check_monthly_upload_limit(current_user)
+        await PlanLimitService.check_total_storage_limit(current_user, request.size)
+        
+        # ファイルサイズチェック（システム全体の制限）
         if request.size > settings.MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -101,6 +108,10 @@ async def initiate_upload(
                 "size": min(request.chunk_size, request.size - i * request.chunk_size),
                 "r2Key": r2_key
             })
+        
+        # アップロードセッション期限に基づいてクリーンアップタスクをスケジューリング
+        from app.background.scheduler import schedule_session_cleanup_task
+        background_tasks.add_task(schedule_session_cleanup_task, session.id, session.expiresAt)
         
         return InitiateUploadResponse(
             file_id=file.id,
@@ -249,6 +260,7 @@ async def upload_chunk(request: ChunkUploadRequest) -> ChunkUploadResponse:
 @router.post("/upload/complete", operation_id="complete_upload")
 async def complete_upload(
     request: CompleteUploadRequest,
+    background_tasks: BackgroundTasks,
     current_user: AuthUser = Depends(require_auth)
 ):
     """
@@ -318,7 +330,7 @@ async def complete_upload(
             )
         
         # 暗号化キーを保存
-        await prisma.file.update(
+        updated_file = await prisma.file.update(
             where={"id": file.id},
             data={
                 "encryptedKey": request.encrypted_key,
@@ -336,6 +348,11 @@ async def complete_upload(
             where={"id": session.id},
             data={"status": "completed"}
         )
+        
+        # ファイル有効期限に基づいてクリーンアップタスクをスケジューリング
+        from app.background.scheduler import schedule_file_cleanup_task
+        if updated_file.expiresAt:
+            background_tasks.add_task(schedule_file_cleanup_task, file.id, updated_file.expiresAt)
         
         return {"message": "Upload completed successfully", "share_id": file.shareId}
         

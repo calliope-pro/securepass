@@ -1,0 +1,15 @@
+# Railway IaC Configuration for Backend Service
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = [
+  "**/*"
+]
+
+[deploy]
+preDeployCommand = "sh -c 'uv run prisma migrate deploy && uv run upsert-initial-plans'"
+startCommand = "sh -c 'uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT'"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

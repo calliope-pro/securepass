@@ -241,7 +241,7 @@ export default function AboutPage() {
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">今すぐ始めよう</h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              アカウント登録不要。数秒で世界最高レベルのセキュリティでファイル共有を開始できます。
+              簡単なアカウント登録で、世界最高レベルのセキュリティでファイル共有を開始できます。
             </p>
             <a
               href="/"

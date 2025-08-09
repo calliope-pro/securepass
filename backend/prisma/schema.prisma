@@ -19,7 +19,9 @@ model User {
   updatedAt DateTime @updatedAt
   
   // ユーザーが所有するファイル
-  files     File[]
+  files        File[]
+  // サブスクリプション
+  subscription Subscription?
   
   @@index([email])
   @@index([createdAt])
@@ -116,4 +118,65 @@ model UploadSession {
   
   @@index([sessionKey])
   @@index([status, expiresAt])
+}
+
+model Plan {
+  id                 String    @id @default(uuid())
+  name               String    @unique @db.VarChar(50) // "free", "pro", "enterprise"
+  displayName        String    @db.VarChar(100) // "Free", "Pro", "Enterprise"
+  price              Int       @default(0) // 価格（セント単位）
+  currency           String    @default("usd") @db.VarChar(3)
+  stripePriceId      String?   @unique @db.VarChar(255) // Stripe Price ID
+  maxFileSize        BigInt    @default(104857600) // 最大ファイルサイズ（バイト）100MB
+  maxFilesPerMonth   Int       @default(10) // 月間アップロード数制限
+  maxStorageTotal    BigInt    @default(1073741824) // 総ストレージ容量（バイト）1GB
+  maxDownloadsPerFile Int      @default(1) // ファイルあたりの最大ダウンロード数
+  featuresJson       Json?     // プラン固有の機能（JSON）
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  subscriptions      Subscription[]
+  
+  @@index([name])
+  @@index([isActive])
+}
+
+model Subscription {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  planId              String
+  stripeCustomerId    String?   @db.VarChar(255) // Stripe Customer ID
+  stripeSubscriptionId String?  @unique @db.VarChar(255) // Stripe Subscription ID
+  status              String    @default("active") // active, canceled, past_due, unpaid
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean   @default(false)
+  canceledAt          DateTime?
+  trialStart          DateTime?
+  trialEnd            DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                Plan      @relation(fields: [planId], references: [id])
+  
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([stripeSubscriptionId])
+}
+
+model StripeEvent {
+  id              String   @id @default(uuid())
+  stripeEventId   String   @unique @db.VarChar(255) // Stripe Event ID（冪等性確保）
+  eventType       String   @db.VarChar(100) // customer.subscription.created など
+  processed       Boolean  @default(false)
+  processedAt     DateTime?
+  data            Json     // イベントデータ
+  createdAt       DateTime @default(now())
+  
+  @@index([stripeEventId])
+  @@index([eventType])
+  @@index([processed])
 }

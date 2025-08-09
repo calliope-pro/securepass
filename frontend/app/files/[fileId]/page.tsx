@@ -292,7 +292,7 @@ export default function FileDetailPage() {
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
                   <button
                     onClick={handleCopyShareUrl}
-                    disabled={fileInfo.blocks_downloads || isExpired(fileInfo.expires_at)}
+                    disabled={isExpired(fileInfo.expires_at)}
                     className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     <Copy className="h-5 w-5" />
@@ -315,7 +315,7 @@ export default function FileDetailPage() {
                 </div>
                 
                 {/* リクエスト受付停止状態の警告 */}
-                {fileInfo.blocks_requests && (
+                {fileInfo.blocks_requests && !isExpired(fileInfo.expires_at) && (
                   <div className="mt-6 mx-auto max-w-md">
                     <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl">
                       <div className="p-2 bg-red-100 rounded-full">
@@ -330,7 +330,7 @@ export default function FileDetailPage() {
                 )}
 
                 {/* ダウンロード禁止状態の警告 */}
-                {fileInfo.blocks_downloads && (
+                {fileInfo.blocks_downloads && !isExpired(fileInfo.expires_at) && (
                   <div className="mt-6 mx-auto max-w-md">
                     <div className="flex items-center space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
                       <div className="p-2 bg-orange-100 rounded-full">

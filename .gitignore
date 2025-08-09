@@ -45,5 +45,14 @@ yarn-error.log*
 postgres_data/
 redis_data/
 
+# Railway
+.railway/
+*.railway.env
+
+# Environment files  
+.env.local
+.env.production  
+.env.staging
+
 # Prisma
 prisma/migrations/

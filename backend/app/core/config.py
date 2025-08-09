@@ -29,7 +29,11 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
-        "https://securepass-front-staging.up.railway.app",  # Railway ステージング環境
+        "http://backend.railway.internal",
+        "https://securepass-frontend-staging.up.railway.app",  # Railway ステージング環境
+        "https://securepass-backend-staging.up.railway.app",  # Railway ステージング環境
+        "https://securepass-frontend-mvp.up.railway.app",  # Railway MVP環境
+        "https://securepass-backend-mvp.up.railway.app",  # Railway MVP環境
     ]
     
     # ファイルアップロード設定
@@ -37,13 +41,18 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 5 * 1024 * 1024  # 5MB
     UPLOAD_SESSION_EXPIRE_HOURS: int = 24
     
-    
     # セキュリティ用Salt
     IP_HASH_SALT: str = os.environ["IP_HASH_SALT"]
     
     # Auth0認証
     AUTH0_DOMAIN: str = os.environ["AUTH0_DOMAIN"]
     AUTH0_AUDIENCE: str = os.environ["AUTH0_AUDIENCE"]
+    
+    # Stripe決済
+    STRIPE_SECRET_KEY: str = os.environ["STRIPE_SECRET_KEY"]
+    STRIPE_WEBHOOK_SECRET: str = os.environ["STRIPE_WEBHOOK_SECRET"]
+    STRIPE_PRO_PRICE_ID: str = os.environ["STRIPE_PRO_PRICE_ID"]
+    STRIPE_ENTERPRISE_PRICE_ID: str = os.environ["STRIPE_ENTERPRISE_PRICE_ID"]
 
 
     class Config:

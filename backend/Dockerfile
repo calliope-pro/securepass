@@ -15,7 +15,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
 # pyproject.tomlとuv.lockをコピー（存在する場合）
-COPY pyproject.toml uv.lock* ./
+COPY pyproject.toml uv.lock* README.md ./
 
 # 依存関係をインストール
 RUN uv sync --frozen --no-cache
@@ -29,5 +29,4 @@ RUN uv run prisma generate
 # ポート8000を公開
 EXPOSE 8000
 
-# 起動コマンド（マイグレーション実行後にサーバー起動）
-CMD ["sh", "-c", "uv run prisma migrate deploy && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# 起動コマンドはrailway.tomlで定義

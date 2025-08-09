@@ -42,7 +42,7 @@ uv run ruff check .
 uv run mypy .
 
 # バックグラウンドタスク関連
-uv run python -m app.background.worker_with_scheduler   # ワーカー+スケジューラー統合版
+uv run worker   # 統合ワーカーコマンド
 
 # Docker Compose経由でのバックエンド操作（推奨）
 docker compose exec backend uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -52,7 +52,7 @@ docker compose exec backend uv run ruff check .
 docker compose exec backend uv run mypy .
 
 # Docker Compose経由でのバックグラウンドタスク操作
-docker compose exec worker uv run python -m app.background.worker_with_scheduler
+docker compose exec worker uv run worker
 ```
 
 ### フロントエンド（Next.js/TypeScript）
@@ -138,13 +138,13 @@ docker-compose up -d       # PostgreSQL + Redis + バックエンド + フロン
 ARG NEXT_PUBLIC_AUTH0_DOMAIN
 ARG NEXT_PUBLIC_AUTH0_CLIENT_ID
 ARG NEXT_PUBLIC_AUTH0_AUDIENCE
-ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_DOMAIN
 
 # 環境変数として設定
 ENV NEXT_PUBLIC_AUTH0_DOMAIN=$NEXT_PUBLIC_AUTH0_DOMAIN
 ENV NEXT_PUBLIC_AUTH0_CLIENT_ID=$NEXT_PUBLIC_AUTH0_CLIENT_ID
 ENV NEXT_PUBLIC_AUTH0_AUDIENCE=$NEXT_PUBLIC_AUTH0_AUDIENCE
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_DOMAIN=$NEXT_PUBLIC_API_DOMAIN
 
 RUN yarn build
 ```
@@ -167,7 +167,7 @@ RUN yarn build
 - `NEXT_PUBLIC_AUTH0_DOMAIN`: Auth0ドメイン（ブラウザでの認証用）
 - `NEXT_PUBLIC_AUTH0_CLIENT_ID`: Auth0クライアントID
 - `NEXT_PUBLIC_AUTH0_AUDIENCE`: Auth0オーディエンス（APIスコープ）
-- `NEXT_PUBLIC_API_URL`: バックエンドAPIのベースURL
+- `NEXT_PUBLIC_API_DOMAIN`: バックエンドAPIのベースURL
 
 ### デプロイ時の注意点
 
@@ -352,4 +352,3 @@ async def set_file_invalidated(file_id: str):
 - サインアップとサインインが同じ関数処理になっているので処理を分ける
 - username, passwordの変更
 - deploy
-- ファイルの無効化

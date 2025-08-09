@@ -1,0 +1,12 @@
+# Railway Ignore - モノレポでの不要ファイル除外
+
+# 環境ファイル
+.env*
+!.env.sample
+
+# 開発用
+docker-compose.yml
+.vscode/
+.idea/
+
+# 各サービスは個別のrootDirectoryで管理

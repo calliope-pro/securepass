@@ -1,27 +1,32 @@
 'use client'
 
 import { useAuth0 } from '@/contexts/Auth0Context'
-import { User, Mail, Calendar, Shield, Settings, ExternalLink, ArrowRight, Sparkles, Activity, Lock, CheckCircle } from 'lucide-react'
+import { User, Mail, Calendar, Shield, Settings, ExternalLink, ArrowRight, Sparkles, Lock, CreditCard } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { OpenAPI, SubscriptionService } from '@/lib/api/generated'
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading, linkAccount } = useAuth0()
+  const { user, isAuthenticated, isLoading, linkAccount, getAccessTokenSilently } = useAuth0()
   const router = useRouter()
 
-  useEffect(() => {
-    console.log('Profile auth check:', { isLoading, isAuthenticated, user })
-    
-    // 認証状態が確定するまで少し待つ
-    const checkAuthWithDelay = setTimeout(() => {
-      if (!isLoading && !isAuthenticated) {
-        console.log('Redirecting to home because not authenticated')
-        router.push('/')
-      }
-    }, 100)
+  // 現在のサブスクリプション情報取得
+  const { data: subscription, isLoading: subscriptionLoading } = useQuery({
+    queryKey: ['current-subscription'],
+    queryFn: async () => {
+      const token = await getAccessTokenSilently()
+      OpenAPI.TOKEN = token
+      return SubscriptionService.getCurrentSubscriptionApiV1SubscriptionSubscriptionGet()
+    },
+    enabled: isAuthenticated,
+    staleTime: 30000,
+  })
 
-    return () => clearTimeout(checkAuthWithDelay)
-  }, [isAuthenticated, isLoading, router, user])
+  // 認証されていない場合はホームにリダイレクト
+  if (!isLoading && !isAuthenticated) {
+    router.push('/')
+    return null
+  }
 
   if (isLoading) {
     return (
@@ -193,19 +198,73 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            {/* Pro Features CTA */}
+            {/* Current Plan */}
+            <div className="glass-dark rounded-2xl p-6">
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl">
+                  <CreditCard className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-900 mb-3">現在のプラン</h4>
+                  {subscriptionLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-24"></div>
+                    </div>
+                  ) : subscription ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">プラン名</span>
+                        <span className="font-semibold text-gray-900 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full">
+                          {subscription.plan.display_name}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">月額料金</span>
+                        <span className="font-semibold text-gray-900">
+                          ¥{subscription.plan.price.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">ステータス</span>
+                        <span className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${
+                          subscription.status === 'active' 
+                            ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' 
+                            : 'bg-gradient-to-r from-orange-500/10 to-red-500/10 text-orange-700'
+                        }`}>
+                          <div className={`w-2 h-2 rounded-full ${
+                            subscription.status === 'active' ? 'bg-green-500' : 'bg-orange-500'
+                          }`}></div>
+                          <span>{subscription.status === 'active' ? '有効' : subscription.status}</span>
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-600">
+                      <p>現在、無料プランをご利用中です</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+            {/* Plan Change CTA */}
             <div className="text-center">
               <div className="inline-flex p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full mb-6">
                 <Sparkles className="h-8 w-8 text-yellow-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">さらなるセキュリティ機能</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">プランを変更する</h3>
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
                 より大きなファイル、長期保存、高度な分析機能で、<br />
                 ビジネスレベルのセキュリティを体験しませんか？
               </p>
-              <button className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <button 
+                onClick={() => router.push('/pricing')}
+                className="inline-flex items-center space-x-3 px-8 py-4 animated-gradient text-white rounded-xl font-semibold text-lg hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
                 <Sparkles className="h-6 w-6" />
-                <span>Pro機能を見る</span>
+                <span>プランを見る</span>
               </button>
             </div>
           </div>

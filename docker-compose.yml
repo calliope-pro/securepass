@@ -46,9 +46,12 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       IP_HASH_SALT: ${IP_HASH_SALT}
       ENVIRONMENT: development
-      # Auth0 configuration
       AUTH0_DOMAIN: ${AUTH0_DOMAIN}
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID}
+      STRIPE_ENTERPRISE_PRICE_ID: ${STRIPE_ENTERPRISE_PRICE_ID}
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,9 +70,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_DOMAIN: http://localhost:8000
       NEXT_PUBLIC_ENVIRONMENT: development
-      # Auth0 configuration
       NEXT_PUBLIC_AUTH0_DOMAIN: ${NEXT_PUBLIC_AUTH0_DOMAIN}
       NEXT_PUBLIC_AUTH0_CLIENT_ID: ${NEXT_PUBLIC_AUTH0_CLIENT_ID}
       NEXT_PUBLIC_AUTH0_AUDIENCE: ${NEXT_PUBLIC_AUTH0_AUDIENCE}
@@ -81,7 +83,7 @@ services:
     depends_on:
       - backend
 
-  # Dramatiqワーカー + スケジューラー（統合版）
+  # ARQ Worker
   worker:
     build:
       context: ./backend
@@ -96,9 +98,12 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       IP_HASH_SALT: ${IP_HASH_SALT}
       ENVIRONMENT: development
-      # Auth0 configuration
       AUTH0_DOMAIN: ${AUTH0_DOMAIN}
       AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID}
+      STRIPE_ENTERPRISE_PRICE_ID: ${STRIPE_ENTERPRISE_PRICE_ID}
     depends_on:
       postgres:
         condition: service_healthy
@@ -108,7 +113,7 @@ services:
       - ./backend:/app
       - backend_cache:/root/.cache
       - uv_cache:/root/.local/share/uv
-    command: uv run python -m app.background.worker_with_scheduler
+    command: uv run worker
 
 volumes:
   postgres_data:
