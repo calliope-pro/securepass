@@ -49,8 +49,12 @@ jobs:
           
           echo "Railway CLI version:"
           railway --version
-          echo "Starting deployment with project token..."
           
+          # 認証確認
+          echo "Checking authentication..."
+          railway whoami
+          
+          echo "Starting deployment..."
           # 直接デプロイ（サービス自動検出）
           railway up --detach
 
