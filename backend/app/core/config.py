@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
+        "http://backend:8000",
         "https://securepass-frontend-staging.up.railway.app",  # Railway ステージング環境
         "https://securepass-backend-staging.up.railway.app",  # Railway ステージング環境
         "https://securepass-frontend-mvp.up.railway.app",  # Railway MVP環境
