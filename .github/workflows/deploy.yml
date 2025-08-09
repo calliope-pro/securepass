@@ -47,20 +47,24 @@ jobs:
 
       - name: Railway Link Project
         run: |
-          # プロジェクトにリンク（最新のRailway CLIでは必要）
-          echo "Linking to Railway project..."
+          # railway linkコマンドの構文を確認
+          echo "Checking railway link options..."
+          railway link --help
           
-          # プロジェクトIDまたは名前でリンク
+          echo "Attempting to link to Railway project..."
+          
+          # プロジェクトIDでリンクを試行（正しい構文で）
           if [ -n "${{ secrets.RAILWAY_PROJECT_ID }}" ]; then
-            railway link ${{ secrets.RAILWAY_PROJECT_ID }}
-          else
-            # プロジェクト名でリンクを試行
-            railway link --name securepass || railway link --name SecurePass || echo "Failed to link project"
+            echo "Linking with project ID: ${{ secrets.RAILWAY_PROJECT_ID }}"
+            railway link --project=${{ secrets.RAILWAY_PROJECT_ID }} || railway link "${{ secrets.RAILWAY_PROJECT_ID }}" || echo "Link with ID failed"
           fi
           
-          # リンク後の状態確認
-          echo "After linking - checking status..."
-          railway whoami
+          # 対話的なリンクも試行
+          echo "Attempting interactive link..."
+          echo "n" | railway link || echo "Interactive link failed"
+          
+          # 状態確認
+          echo "Checking final status..."
           railway status
 
       - name: Setup Database Services
