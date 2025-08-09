@@ -15,7 +15,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
 # pyproject.tomlとuv.lockをコピー（存在する場合）
-COPY pyproject.toml uv.lock* ./
+COPY pyproject.toml uv.lock* README.md ./
 
 # 依存関係をインストール
 RUN uv sync --frozen --no-cache
