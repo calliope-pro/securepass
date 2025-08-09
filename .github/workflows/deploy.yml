@@ -14,7 +14,6 @@ jobs:
     environment: MVP  # GitHub Environmentを指定
     
     env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       CI: true
 
     steps:
@@ -43,6 +42,8 @@ jobs:
           EOF
 
       - name: Install Railway CLI and Deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           # Railway CLIをインストール
           npm install -g @railway/cli@latest
