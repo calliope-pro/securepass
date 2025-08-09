@@ -48,7 +48,7 @@ jobs:
         run: |
           # 正しいオプション構文でプロジェクトと環境にリンク
           echo "Linking to Railway project..."
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          railway link --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }} ${{ secrets.RAILWAY_PROJECT_ID }}
           
           # リンク状態を確認
           echo "Link status:"
