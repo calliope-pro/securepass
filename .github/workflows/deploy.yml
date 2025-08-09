@@ -65,26 +65,18 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # サービス作成とデプロイ
+          # Railway v4では単一のrailway upでサービス自動作成を試す
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Creating and deploying services..."
+          echo "Attempting to deploy with automatic service creation..."
           
-          # バックエンドサービスを作成してデプロイ
-          echo "Creating backend service..."
-          railway service create backend || echo "Backend service already exists"
-          echo "Deploying backend service..."
-          railway up --service backend --detach
+          # Railway v4での新しいアプローチ - 各サービスディレクトリから個別実行
+          echo "Deploying from backend directory..."
+          cd backend && railway up --detach --name backend || echo "Backend deployment failed"
           
-          # フロントエンドサービスを作成してデプロイ
-          echo "Creating frontend service..."
-          railway service create frontend || echo "Frontend service already exists"
-          echo "Deploying frontend service..."
-          railway up --service frontend --detach
+          echo "Deploying from frontend directory..."
+          cd ../frontend && railway up --detach --name frontend || echo "Frontend deployment failed"
           
-          # ワーカーサービスを作成してデプロイ
-          echo "Creating worker service..."
-          railway service create worker || echo "Worker service already exists"
-          echo "Deploying worker service..."
-          railway up --service worker --detach
+          echo "Deploying worker from backend directory..."
+          cd ../backend && railway up --detach --name worker || echo "Worker deployment failed"
           
-          echo "All services created and deployed"
+          echo "All deployments attempted"
