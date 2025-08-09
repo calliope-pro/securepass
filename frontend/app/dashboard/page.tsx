@@ -294,18 +294,22 @@ export default function DashboardPage() {
                         uploaded: {formatDate(file.created_at)}
                       </p>
                       
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                          file.status === 'active' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
-                          file.status === 'expired' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        {/* アップロード状態 */}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold ${
+                          file.status === 'completed' ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700' :
+                          file.status === 'failed' ? 'bg-gradient-to-r from-red-500/10 to-pink-500/10 text-red-700' :
+                          file.status === 'uploading' ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-700' :
                           'bg-gradient-to-r from-gray-500/10 to-slate-500/10 text-gray-700'
                         }`}>
                           <div className={`w-2 h-2 rounded-full mr-2 ${
-                            file.status === 'active' ? 'bg-green-500' :
-                            file.status === 'expired' ? 'bg-red-500' : 'bg-gray-500'
+                            file.status === 'completed' ? 'bg-green-500' :
+                            file.status === 'failed' ? 'bg-red-500' :
+                            file.status === 'uploading' ? 'bg-blue-500' : 'bg-gray-500'
                           }`}></div>
-                          {file.status === 'active' ? 'アクティブ' :
-                           file.status === 'expired' ? '期限切れ' : file.status}
+                          {file.status === 'completed' ? 'アップロード完了' :
+                           file.status === 'failed' ? 'アップロード失敗' :
+                           file.status === 'uploading' ? 'アップロード中' : file.status}
                         </span>
                       </div>
                       

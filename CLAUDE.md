@@ -352,4 +352,3 @@ async def set_file_invalidated(file_id: str):
 - サインアップとサインインが同じ関数処理になっているので処理を分ける
 - username, passwordの変更
 - deploy
-- ファイルの無効化
