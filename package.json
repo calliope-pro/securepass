@@ -1,0 +1,23 @@
+{
+  "name": "securepass-monorepo",
+  "version": "1.0.0",
+  "description": "SecurePass - Zero-knowledge File Sharing Platform (Monorepo)",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "echo 'Use docker-compose up -d for local development'",
+    "build:backend": "cd backend && uv sync",
+    "build:frontend": "cd frontend && yarn build",
+    "deploy:info": "echo 'Each service deploys independently via Railway with rootDirectory'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/securepass.git"
+  },
+  "keywords": ["file-sharing", "encryption", "privacy", "fastapi", "nextjs"],
+  "author": "SecurePass Team",
+  "license": "UNLICENSED"
+}

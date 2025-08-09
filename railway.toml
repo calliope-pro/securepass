@@ -1,13 +1,14 @@
-# Railway IaC Configuration for SecurePass Platform
-# This file defines the infrastructure setup for the entire SecurePass platform
+# Railway IaC Configuration for SecurePass Platform (Monorepo)
+# Each service uses its own rootDirectory for isolated deployment
 
 [backend]
 [backend.build]
-builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
-# 監視パターン: バックエンドコードの変更のみでトリガー
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+rootDirectory = "backend"
+# 監視パターン: バックエンドディレクトリのみ監視
 watchPatterns = [
-  "backend/**",
+  "backend/**"
 ]
 
 [backend.deploy]
@@ -20,17 +21,16 @@ restartPolicyMaxRetries = 3
 
 [frontend]
 [frontend.build]
-builder = "dockerfile"
-dockerfilePath = "frontend/Dockerfile"
-# 監視パターン: フロントエンドコードとAPI変更でトリガー
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+rootDirectory = "frontend"
+# 監視パターン: フロントエンドディレクトリのみ監視（API変更時は手動デプロイ）
 watchPatterns = [
-  "frontend/**",
-  "backend/app/api/**",
-  "backend/app/schemas/**"
+  "frontend/**"
 ]
 
 [frontend.deploy]
-# API生成は必要な時のみ手動実行（backend API URLが必要なため）
+# API生成は手動で実行（backend URL必要のため）
 startCommand = "PORT=${PORT:-3000} yarn start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
@@ -39,9 +39,10 @@ restartPolicyMaxRetries = 3
 
 [worker]
 [worker.build]
-builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
-# 監視パターン: バックグラウンドタスクコードの変更でトリガー
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+rootDirectory = "backend"
+# 監視パターン: バックグラウンドタスク関連ファイルのみ
 watchPatterns = [
   "backend/app/background/**",
   "backend/app/services/**",

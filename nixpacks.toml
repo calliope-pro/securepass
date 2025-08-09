@@ -1,0 +1,18 @@
+# Nixpacks configuration for SecurePass Monorepo
+# This tells Railway that this is a multi-service monorepo
+
+[variables]
+# Indicate this is a monorepo structure
+MONOREPO = "true"
+
+# Backend service configuration
+[phases.backend]
+name = "Backend API"
+cmds = ["echo 'Backend service defined in backend/'"]
+
+# Frontend service configuration  
+[phases.frontend]
+name = "Frontend App"
+cmds = ["echo 'Frontend service defined in frontend/'"]
+
+# Each service will use its own rootDirectory and Dockerfile
