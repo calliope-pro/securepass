@@ -45,22 +45,27 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Direct Deploy (Skip Database Setup)
+      - name: Railway Project Connection Debug
         run: |
-          # データベースサービス設定をスキップして、直接デプロイを試行
-          echo "Deploying services directly..."
+          # プロジェクト設定ファイルの確認
+          echo "Checking railway.toml configuration..."
+          if [ -f "railway.toml" ]; then
+            echo "railway.toml found:"
+            head -20 railway.toml
+          else
+            echo "railway.toml not found"
+          fi
           
-          # 既存のサービスに直接デプロイ
-          echo "Deploying backend..."
-          railway up --service backend --detach || echo "Backend deploy failed"
+          # 認証状態の詳細確認
+          echo "Railway CLI authentication debug..."
+          railway whoami 2>&1 || echo "Authentication failed"
           
-          echo "Deploying worker..."  
-          railway up --service worker --detach || echo "Worker deploy failed"
+          # プロジェクト情報の取得を試行
+          echo "Attempting to get project info..."
+          railway variables 2>&1 || echo "Failed to get variables"
           
-          echo "Deploying frontend..."
-          railway up --service frontend --detach || echo "Frontend deploy failed"
-          
-          echo "Deployment commands completed"
+          echo "Railway CLI current context..."
+          railway status 2>&1 || echo "Failed to get status"
 
       - name: Setup Database Services
         run: |
