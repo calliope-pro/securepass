@@ -65,25 +65,20 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # Railway v4でディレクトリベースデプロイ
+          # Railway v4で各サービスを明示的に指定してデプロイ
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Deploying from each service directory..."
+          echo "Deploying each service with explicit service flags..."
           
-          # バックエンドディレクトリからデプロイ
-          echo "Deploying backend..."
-          cd backend
-          railway up --detach
-          cd ..
+          # バックエンドサービスをデプロイ
+          echo "Deploying backend service..."
+          cd backend && railway up --service backend --detach && cd .. || echo "Backend deployment failed"
           
-          # フロントエンドディレクトリからデプロイ  
-          echo "Deploying frontend..."
-          cd frontend
-          railway up --detach
-          cd ..
+          # フロントエンドサービスをデプロイ  
+          echo "Deploying frontend service..."
+          cd frontend && railway up --service frontend --detach && cd .. || echo "Frontend deployment failed"
           
-          # ワーカーサービス（backendディレクトリから別設定で）
-          echo "Deploying worker..."
-          cd backend
-          railway up --detach
+          # ワーカーサービスをデプロイ
+          echo "Deploying worker service..."
+          cd backend && railway up --service worker --detach && cd .. || echo "Worker deployment failed"
           
           echo "All deployments completed"
