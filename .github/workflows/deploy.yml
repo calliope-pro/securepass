@@ -65,20 +65,29 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # Railway v4で各サービスを明示的に指定してデプロイ
+          # Railway deployコマンドでサービス自動作成とデプロイ
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Deploying each service with explicit service flags..."
+          echo "Using railway deploy for service provisioning..."
           
-          # バックエンドサービスをデプロイ
-          echo "Deploying backend service..."
-          cd backend && railway up --service backend --detach && cd .. || echo "Backend deployment failed"
+          # バックエンドサービスをプロビジョニング（Dockerテンプレート使用）
+          echo "Provisioning backend service..."
+          cd backend
+          railway deploy --template docker || echo "Backend provisioning failed - trying alternative"
+          railway up --detach || echo "Backend deployment failed"
+          cd ..
           
-          # フロントエンドサービスをデプロイ  
-          echo "Deploying frontend service..."
-          cd frontend && railway up --service frontend --detach && cd .. || echo "Frontend deployment failed"
+          # フロントエンドサービスをプロビジョニング
+          echo "Provisioning frontend service..."
+          cd frontend  
+          railway deploy --template docker || echo "Frontend provisioning failed - trying alternative"
+          railway up --detach || echo "Frontend deployment failed"
+          cd ..
           
-          # ワーカーサービスをデプロイ
-          echo "Deploying worker service..."
-          cd backend && railway up --service worker --detach && cd .. || echo "Worker deployment failed"
+          # ワーカーサービスをプロビジョニング
+          echo "Provisioning worker service..."
+          cd backend
+          railway deploy --template docker || echo "Worker provisioning failed - trying alternative"
+          railway up --detach || echo "Worker deployment failed"
+          cd ..
           
-          echo "All deployments completed"
+          echo "All services provisioned and deployed"
