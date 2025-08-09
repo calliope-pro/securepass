@@ -7,7 +7,7 @@ watchPatterns = [
 ]
 
 [deploy]
-startCommand = "PORT=${PORT:-3000} yarn start"
+startCommand = "yarn start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
