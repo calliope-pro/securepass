@@ -71,8 +71,8 @@ jobs:
           
           # Backend環境変数設定
           echo "Setting backend environment variables..."
-          railway variables set DATABASE_URL='${''{''Postgres.DATABASE_URL''}'}' --service backend
-          railway variables set REDIS_URL='${''{''Redis.REDIS_URL''}'}' --service backend
+          railway variables set DATABASE_URL='${{ secrets.DATABASE_URL }}' --service backend
+          railway variables set REDIS_URL='${{ secrets.REDIS_URL }}' --service backend
           railway variables set R2_ENDPOINT='${{ secrets.R2_ENDPOINT }}' --service backend
           railway variables set R2_ACCESS_KEY_ID='${{ secrets.R2_ACCESS_KEY_ID }}' --service backend
           railway variables set R2_SECRET_ACCESS_KEY='${{ secrets.R2_SECRET_ACCESS_KEY }}' --service backend
@@ -97,8 +97,8 @@ jobs:
           
           # Worker環境変数設定
           echo "Setting worker environment variables..."
-          railway variables set DATABASE_URL='${''{''Postgres.DATABASE_URL''}'}' --service worker
-          railway variables set REDIS_URL='${''{''Redis.REDIS_URL''}'}' --service worker
+          railway variables set DATABASE_URL='${{ secrets.DATABASE_URL }}' --service worker
+          railway variables set REDIS_URL='${{ secrets.REDIS_URL }}' --service worker
           railway variables set R2_ENDPOINT='${{ secrets.R2_ENDPOINT }}' --service worker
           railway variables set R2_ACCESS_KEY_ID='${{ secrets.R2_ACCESS_KEY_ID }}' --service worker
           railway variables set R2_SECRET_ACCESS_KEY='${{ secrets.R2_SECRET_ACCESS_KEY }}' --service worker
