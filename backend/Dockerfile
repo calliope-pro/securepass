@@ -29,5 +29,5 @@ RUN uv run prisma generate
 # ポート8000を公開
 EXPOSE 8000
 
-# 起動コマンド（マイグレーション実行後にサーバー起動）
-CMD ["sh", "-c", "uv run prisma migrate deploy && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# 起動コマンド（マイグレーション実行、初期プラン作成後にサーバー起動）
+CMD ["sh", "-c", "uv run prisma migrate deploy && uv run python scripts/create_initial_plans.py && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
