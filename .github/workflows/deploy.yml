@@ -41,24 +41,7 @@ jobs:
           NEXT_PUBLIC_API_URL=https://securepass-back-mvp.up.railway.app
           EOF
 
-      - name: Install Railway CLI and Deploy
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@main
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          # Railway CLI v3をインストール
-          npm install -g @railway/cli@3
-          
-          echo "Railway CLI version:"
-          railway --version
-          
-          # 認証確認
-          echo "Checking authentication..."
-          railway whoami
-          
-          echo "Starting deployment..."
-          # 直接デプロイ（サービス自動検出）
-          railway up --detach
-
-      - name: Check Deployment Status
-        run: |
-          echo "Deployment initiated successfully"
