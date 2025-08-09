@@ -65,6 +65,11 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # プロジェクトを明示的に指定してデプロイ
+          # 全サービスをデプロイ
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          railway up --detach
+          echo "Deploying all services (backend, frontend, worker)..."
+          railway up --service backend --detach &
+          railway up --service frontend --detach &
+          railway up --service worker --detach &
+          wait
+          echo "All services deployment initiated"
