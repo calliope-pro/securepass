@@ -45,8 +45,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Railway CLIをインストール
-          npm install -g @railway/cli@latest
+          # Railway CLI v3をインストール
+          npm install -g @railway/cli@3
           
           echo "Railway CLI version:"
           railway --version
