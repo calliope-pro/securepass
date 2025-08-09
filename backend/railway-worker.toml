@@ -1,0 +1,17 @@
+# Railway IaC Configuration for Worker Service
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "uv run worker"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
+[watch]
+patterns = [
+  "app/background/**",
+  "app/services/**", 
+  "app/core/**",
+  "pyproject.toml"
+]

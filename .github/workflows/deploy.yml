@@ -103,14 +103,14 @@ jobs:
           
           echo "Deploying to existing Railway services..."
           
-          # 各サービスをデプロイ（railway.tomlのrootDirectoryを指定）
+          # 各サービスを個別のrailway.tomlで設定してデプロイ
           echo "Deploying backend..."
-          railway up backend --service backend --detach || echo "Backend deployment failed"
+          (cd backend && railway up --service backend --detach) || echo "Backend deployment failed"
           
           echo "Deploying frontend..."
-          railway up frontend --service frontend --detach || echo "Frontend deployment failed"
+          (cd frontend && railway up --service frontend --detach) || echo "Frontend deployment failed"
           
           echo "Deploying worker..."  
-          railway up backend --service worker --detach || echo "Worker deployment failed"
+          (cd backend && cp railway-worker.toml railway.toml && railway up --service worker --detach && rm railway.toml) || echo "Worker deployment failed"
           
           echo "All deployments completed"
