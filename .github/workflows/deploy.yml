@@ -52,8 +52,8 @@ jobs:
           # Backend環境変数設定（一括設定）
           echo "Setting backend environment variables..."
           railway variables --service backend \
-            --set "DATABASE_URL=\${{ Postgres.DATABASE_URL }}" \
-            --set "REDIS_URL=\${{ Redis.REDIS_URL }}" \
+            --set "DATABASE_URL=${DATABASE_URL}" \
+            --set "REDIS_URL=${REDIS_URL}" \
             --set "R2_ENDPOINT=${R2_ENDPOINT}" \
             --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}" \
             --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}" \
@@ -80,8 +80,8 @@ jobs:
           # Worker環境変数設定（一括設定）
           echo "Setting worker environment variables..."
           railway variables --service worker \
-            --set "DATABASE_URL=\${{ Postgres.DATABASE_URL }}" \
-            --set "REDIS_URL=\${{ Redis.REDIS_URL }}" \
+            --set "DATABASE_URL=${DATABASE_URL}" \
+            --set "REDIS_URL=${REDIS_URL}" \
             --set "R2_ENDPOINT=${R2_ENDPOINT}" \
             --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}" \
             --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}" \
