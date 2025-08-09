@@ -104,15 +104,15 @@ jobs:
           # ワーカーをデプロイ
           railway deploy --service worker
 
-      - name: Get Backend URL and Generate API Client
+      - name: Generate API Client with Backend URL
         id: backend-url
         run: |
-          railway service --name backend
-          BACKEND_URL=$(railway status --json | jq -r '.deployments[0].url')
+          # 既存のRailwayエンドポイントを使用
+          BACKEND_URL="https://securepass-back-mvp.up.railway.app"
           echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
           echo "Backend URL: $BACKEND_URL"
           
-          # バックエンドがデプロイされた後にAPI生成を実行
+          # API生成を実行
           cd frontend
           NEXT_PUBLIC_API_URL="$BACKEND_URL" yarn generate-api
           echo "API client generated successfully"
@@ -125,7 +125,7 @@ jobs:
           railway variables set NEXT_PUBLIC_AUTH0_DOMAIN="${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}"
           railway variables set NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}"
           railway variables set NEXT_PUBLIC_AUTH0_AUDIENCE="${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}"
-          railway variables set NEXT_PUBLIC_API_URL="${{ steps.backend-url.outputs.url || secrets.BACKEND_URL }}"
+          railway variables set NEXT_PUBLIC_API_URL="https://securepass-back-mvp.up.railway.app"
           
           # フロントエンドをデプロイ
           railway deploy --service frontend

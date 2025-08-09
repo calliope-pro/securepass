@@ -49,7 +49,10 @@ Railway で以下のサービスを追加：
 - `NEXT_PUBLIC_AUTH0_DOMAIN`: Auth0 ドメイン（クライアント用）
 - `NEXT_PUBLIC_AUTH0_CLIENT_ID`: Auth0 クライアント ID
 - `NEXT_PUBLIC_AUTH0_AUDIENCE`: Auth0 オーディエンス（クライアント用）
-- `BACKEND_URL`: バックエンドの URL（オプション、動的に取得も可能）
+
+### Railway エンドポイント（設定済み）
+- **Backend**: `https://securepass-back-mvp.up.railway.app`
+- **Frontend**: `https://securepass-front-mvp.up.railway.app`
 
 ## ワークフローの動作
 
@@ -70,17 +73,17 @@ Railway で以下のサービスを追加：
 
 3. **バックエンドデプロイ**
    - 環境変数の設定
-   - サービスデプロイ
+   - `https://securepass-back-mvp.up.railway.app` にデプロイ
    - データベースマイグレーション（railway.toml の preDeployCommand で自動実行）
 
 4. **ワーカーデプロイ**
    - バックエンドと同じ環境変数を設定
    - バックグラウンドタスク用サービスをデプロイ
 
-5. **フロントエンドデプロイ**
-   - バックエンド URL を取得
+5. **API生成とフロントエンドデプロイ**
+   - 固定バックエンドURL (`https://securepass-back-mvp.up.railway.app`) を使用してAPI生成
    - フロントエンド環境変数の設定
-   - サービスデプロイ
+   - `https://securepass-front-mvp.up.railway.app` にデプロイ
 
 ### テストジョブ
 
