@@ -1,71 +1,61 @@
 #!/usr/bin/env python3
 """
-Dramatiqワーカーのみを実行するスクリプト
-スケジューラーを使わず、リアクティブタスクのみを処理
+ARQワーカー - オブジェクト指向でクリーンな実装
+リアクティブタスクのみを処理
 """
 
 import logging
-import signal
 import sys
-import threading
-import time
 
-import dramatiq
-from dramatiq import Worker
+from arq import run_worker
+from arq.connections import RedisSettings
+
+from app.background.tasks import cleanup_expired_files_storage, cleanup_expired_upload_sessions
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 
+class WorkerSettings:
+    """ARQ ワーカー設定"""
+    
+    # 実行するタスク関数
+    functions = [
+        cleanup_expired_files_storage,
+        cleanup_expired_upload_sessions,
+    ]
+    
+    # Redis接続設定
+    redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
+    
+    # ワーカー設定
+    job_timeout = 300  # 5分タイムアウト
+    keep_result = 3600  # 結果を1時間保持
+    max_jobs = 10  # 同時実行ジョブ数
+    
+    # ログ設定
+    log_level = "INFO"
+
+
 def main():
-    """ワーカーのメイン関数 - dramatiq APIを使用"""
+    """ARQワーカーのメイン関数"""
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
     )
     
-    logger.info("Starting Dramatiq worker (reactive tasks only)")
-    
-    # tasksモジュールをインポートしてアクターを登録
-    from app.background import tasks
-    
-    # ブローカーを取得
-    broker = dramatiq.get_broker()
-    
-    # ワーカーを作成
-    worker = Worker(broker, worker_processes=1, worker_threads=1)
-    
-    # グレースフルシャットダウン用フラグ
-    shutdown_event = threading.Event()
-    
-    def signal_handler(signum, frame):
-        """シグナルハンドラー"""
-        logger.info(f"Received signal {signum}, shutting down gracefully...")
-        shutdown_event.set()
-        worker.stop()
-    
-    # シグナルハンドラーを設定
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
+    logger.info("Starting ARQ worker (reactive tasks only)")
     
     try:
-        logger.info("Worker started and ready to process tasks")
-        # ワーカーを開始
-        worker.start()
-        
-        # シャットダウンシグナルが来るまで待機
-        while not shutdown_event.is_set():
-            time.sleep(0.1)
-            
+        # ARQワーカーを起動
+        run_worker(WorkerSettings)
     except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt received")
+        logger.info("KeyboardInterrupt received, shutting down gracefully")
     except Exception as e:
         logger.error(f"Worker error: {e}")
         return 1
-    finally:
-        logger.info("Stopping worker...")
-        worker.stop()
-        logger.info("Worker stopped")
     
+    logger.info("ARQ worker stopped")
     return 0
 
 

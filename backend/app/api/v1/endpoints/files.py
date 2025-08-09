@@ -1,5 +1,5 @@
 # backend/app/api/v1/endpoints/files.py
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from app.schemas.file import (
     InitiateUploadRequest,
     InitiateUploadResponse,
@@ -32,6 +32,7 @@ router = APIRouter()
 @router.post("/upload/initiate", response_model=InitiateUploadResponse, operation_id="initiate_upload")
 async def initiate_upload(
     request: InitiateUploadRequest,
+    background_tasks: BackgroundTasks,
     current_user: AuthUser = Depends(require_auth)
 ) -> InitiateUploadResponse:
     """
@@ -109,8 +110,8 @@ async def initiate_upload(
             })
         
         # アップロードセッション期限に基づいてクリーンアップタスクをスケジューリング
-        from app.background.tasks import schedule_session_cleanup
-        schedule_session_cleanup.send(session.id, session.expiresAt.isoformat())
+        from app.background.scheduler import schedule_session_cleanup_task
+        background_tasks.add_task(schedule_session_cleanup_task, session.id, session.expiresAt)
         
         return InitiateUploadResponse(
             file_id=file.id,
@@ -259,6 +260,7 @@ async def upload_chunk(request: ChunkUploadRequest) -> ChunkUploadResponse:
 @router.post("/upload/complete", operation_id="complete_upload")
 async def complete_upload(
     request: CompleteUploadRequest,
+    background_tasks: BackgroundTasks,
     current_user: AuthUser = Depends(require_auth)
 ):
     """
@@ -348,9 +350,9 @@ async def complete_upload(
         )
         
         # ファイル有効期限に基づいてクリーンアップタスクをスケジューリング
-        from app.background.tasks import schedule_file_cleanup
+        from app.background.scheduler import schedule_file_cleanup_task
         if updated_file.expiresAt:
-            schedule_file_cleanup.send(file.id, updated_file.expiresAt.isoformat())
+            background_tasks.add_task(schedule_file_cleanup_task, file.id, updated_file.expiresAt)
         
         return {"message": "Upload completed successfully", "share_id": file.shareId}
         
