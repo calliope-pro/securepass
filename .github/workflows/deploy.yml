@@ -96,7 +96,7 @@ jobs:
             --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}" \
             --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
 
-      - name: Deploy to Railway Services and Configure Domains
+      - name: Deploy to Railway Services
         run: |
           echo "Railway CLI version:"
           railway --version
@@ -114,15 +114,3 @@ jobs:
           (cd backend && cp railway-worker.toml railway.toml && railway up --service worker --detach && rm railway.toml) || echo "Worker deployment failed"
           
           echo "All deployments completed"
-          
-          echo "Setting up custom domains..."
-          
-          # Backend custom domain
-          echo "Setting backend domain..."
-          railway domain --service backend -p 8000 securepass-backend-mvp.up.railway.app || echo "Backend domain setup failed"
-          
-          # Frontend custom domain
-          echo "Setting frontend domain..."
-          railway domain --service frontend -p 3000 securepass-frontend-mvp.up.railway.app || echo "Frontend domain setup failed"
-          
-          echo "Domain configuration completed"
