@@ -65,9 +65,22 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # 全サービスをデプロイ
+          # サービスの確認と作成
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Deploying all services (backend, frontend, worker)..."
+          echo "Checking and creating services..."
+          
+          # 既存のサービス一覧を取得
+          echo "Listing existing services:"
+          railway service list
+          
+          # 各サービスを作成（既存の場合はスキップされる）
+          echo "Creating services if they don't exist..."
+          railway service create backend --source repo || echo "Backend service already exists or creation failed"
+          railway service create frontend --source repo || echo "Frontend service already exists or creation failed"
+          railway service create worker --source repo || echo "Worker service already exists or creation failed"
+          
+          # 全サービスをデプロイ
+          echo "Deploying all services..."
           railway up --service backend --detach &
           railway up --service frontend --detach &
           railway up --service worker --detach &
