@@ -96,7 +96,7 @@ jobs:
             --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}" \
             --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
 
-      - name: Deploy to Railway Services
+      - name: Deploy to Railway Services and Configure Domains
         run: |
           echo "Railway CLI version:"
           railway --version
@@ -114,12 +114,7 @@ jobs:
           (cd backend && cp railway-worker.toml railway.toml && railway up --service worker --detach && rm railway.toml) || echo "Worker deployment failed"
           
           echo "All deployments completed"
-
-      - name: Configure Custom Domains
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-        run: |
+          
           echo "Setting up custom domains..."
           
           # Backend custom domain
