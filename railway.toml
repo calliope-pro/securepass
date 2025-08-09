@@ -4,8 +4,7 @@
 [backend]
 [backend.build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
-rootDirectory = "backend"
+dockerfilePath = "backend/Dockerfile"
 # 監視パターン: バックエンドコードの変更のみでトリガー
 watchPatterns = [
   "backend/**",
@@ -22,8 +21,7 @@ restartPolicyMaxRetries = 3
 [frontend]
 [frontend.build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
-rootDirectory = "frontend"
+dockerfilePath = "frontend/Dockerfile"
 # 監視パターン: フロントエンドコードとAPI変更でトリガー
 watchPatterns = [
   "frontend/**",
@@ -32,7 +30,7 @@ watchPatterns = [
 ]
 
 [frontend.deploy]
-preDeployCommand = ["yarn generate-api"]
+# API生成は必要な時のみ手動実行（backend API URLが必要なため）
 startCommand = "PORT=${PORT:-3000} yarn start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
@@ -42,8 +40,7 @@ restartPolicyMaxRetries = 3
 [worker]
 [worker.build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
-rootDirectory = "backend"
+dockerfilePath = "backend/Dockerfile"
 # 監視パターン: バックグラウンドタスクコードの変更でトリガー
 watchPatterns = [
   "backend/app/background/**",
