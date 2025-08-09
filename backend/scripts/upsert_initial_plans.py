@@ -26,28 +26,30 @@ async def upsert_initial_plans():
         # 無料プラン
         free_plan = await prisma.plan.upsert(
             where={"name": "free"},
-            update={
-                "displayName": "Free",
-                "price": 0,  # 無料
-                "currency": "usd",
-                "stripePriceId": None,  # Stripe価格IDなし
-                "maxFileSize": 100 * 1024 * 1024,  # 100MB
-                "maxFilesPerMonth": 10,  # 月10ファイル
-                "maxStorageTotal": 1 * 1024 * 1024 * 1024,  # 1GB
-                "maxDownloadsPerFile": 1,  # ファイルあたり1回
-                "isActive": True
-            },
-            create={
-                "name": "free",
-                "displayName": "Free",
-                "price": 0,
-                "currency": "usd",
-                "stripePriceId": None,
-                "maxFileSize": 100 * 1024 * 1024,
-                "maxFilesPerMonth": 10,
-                "maxStorageTotal": 1 * 1024 * 1024 * 1024,
-                "maxDownloadsPerFile": 1,
-                "isActive": True
+            data={
+                "update": {
+                    "displayName": "Free",
+                    "price": 0,  # 無料
+                    "currency": "usd",
+                    "stripePriceId": None,  # Stripe価格IDなし
+                    "maxFileSize": 100 * 1024 * 1024,  # 100MB
+                    "maxFilesPerMonth": 10,  # 月10ファイル
+                    "maxStorageTotal": 1 * 1024 * 1024 * 1024,  # 1GB
+                    "maxDownloadsPerFile": 1,  # ファイルあたり1回
+                    "isActive": True
+                },
+                "create": {
+                    "name": "free",
+                    "displayName": "Free",
+                    "price": 0,
+                    "currency": "usd",
+                    "stripePriceId": None,
+                    "maxFileSize": 100 * 1024 * 1024,
+                    "maxFilesPerMonth": 10,
+                    "maxStorageTotal": 1 * 1024 * 1024 * 1024,
+                    "maxDownloadsPerFile": 1,
+                    "isActive": True
+                }
             }
         )
         print(f"✅ 無料プランをupsert: {free_plan.id}")
@@ -67,10 +69,12 @@ async def upsert_initial_plans():
             
         pro_plan = await prisma.plan.upsert(
             where={"name": "pro"},
-            update=pro_data,
-            create={
-                "name": "pro",
-                **pro_data
+            data={
+                "update": pro_data,
+                "create": {
+                    "name": "pro",
+                    **pro_data
+                }
             }
         )
         print(f"✅ Proプランをupsert: {pro_plan.id}")
@@ -90,10 +94,12 @@ async def upsert_initial_plans():
             
         enterprise_plan = await prisma.plan.upsert(
             where={"name": "enterprise"},
-            update=enterprise_data,
-            create={
-                "name": "enterprise",
-                **enterprise_data
+            data={
+                "update": enterprise_data,
+                "create": {
+                    "name": "enterprise",
+                    **enterprise_data
+                }
             }
         )
         print(f"✅ Enterpriseプランをupsert: {enterprise_plan.id}")
