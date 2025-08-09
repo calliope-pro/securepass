@@ -15,7 +15,6 @@ from dramatiq.results import Results
 from dramatiq.results.backends.redis import RedisBackend
 
 from app.core.database import prisma
-from app.core.storage import R2Storage
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -77,6 +76,65 @@ def cleanup_expired_upload_sessions():
     except Exception as e:
         logger.error(f"Upload session cleanup failed: {e}")
         raise  # Dramatiqが自動的にリトライを処理
+
+
+@dramatiq.actor(max_retries=3, min_backoff=300000)
+def schedule_file_cleanup(file_id: str, expires_at_iso: str):
+    """
+    ファイル有効期限に基づいてクリーンアップタスクをスケジューリング
+    ファイルアップロード完了時に呼び出される
+    """
+    try:
+        from datetime import datetime, timezone
+        import time
+        
+        expires_at = datetime.fromisoformat(expires_at_iso.replace('Z', '+00:00'))
+        current_time = datetime.now(timezone.utc)
+        
+        # 有効期限までの秒数を計算
+        delay_seconds = (expires_at - current_time).total_seconds()
+        
+        if delay_seconds > 0:
+            # 有効期限に到達したらクリーンアップタスクを実行
+            cleanup_expired_files_storage.send_with_options(delay=int(delay_seconds * 1000))  # milliseconds
+            logger.info(f"Scheduled cleanup for file {file_id} in {delay_seconds} seconds")
+        else:
+            # 既に期限切れの場合は即座に実行
+            cleanup_expired_files_storage.send()
+            logger.info(f"File {file_id} already expired, triggering immediate cleanup")
+            
+    except Exception as e:
+        logger.error(f"Failed to schedule cleanup for file {file_id}: {e}")
+        raise
+
+
+@dramatiq.actor(max_retries=3, min_backoff=300000)
+def schedule_session_cleanup(session_id: str, expires_at_iso: str):
+    """
+    アップロードセッション有効期限に基づいてクリーンアップタスクをスケジューリング
+    セッション作成時（initiate）に呼び出される
+    """
+    try:
+        from datetime import datetime, timezone
+        
+        expires_at = datetime.fromisoformat(expires_at_iso.replace('Z', '+00:00'))
+        current_time = datetime.now(timezone.utc)
+        
+        # 有効期限までの秒数を計算
+        delay_seconds = (expires_at - current_time).total_seconds()
+        
+        if delay_seconds > 0:
+            # 有効期限に到達したらクリーンアップタスクを実行
+            cleanup_expired_upload_sessions.send_with_options(delay=int(delay_seconds * 1000))  # milliseconds
+            logger.info(f"Scheduled session cleanup for {session_id} in {delay_seconds} seconds")
+        else:
+            # 既に期限切れの場合は即座に実行
+            cleanup_expired_upload_sessions.send()
+            logger.info(f"Session {session_id} already expired, triggering immediate cleanup")
+            
+    except Exception as e:
+        logger.error(f"Failed to schedule session cleanup for {session_id}: {e}")
+        raise
 
 
 async def _cleanup_expired_files_storage_async() -> dict:

@@ -5,12 +5,6 @@
 """
 
 import asyncio
-import sys
-import os
-
-# パスを追加してアプリケーションをインポート可能にする
-sys.path.append(os.path.dirname(__file__))
-
 from app.core.database import prisma
 
 
@@ -90,5 +84,10 @@ async def create_initial_plans():
         print("データベース接続を閉じました")
 
 
-if __name__ == "__main__":
+def main():
+    """メイン関数（CLIエントリーポイント）"""
     asyncio.run(create_initial_plans())
+
+
+if __name__ == "__main__":
+    main()

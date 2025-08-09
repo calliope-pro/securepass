@@ -108,6 +108,10 @@ async def initiate_upload(
                 "r2Key": r2_key
             })
         
+        # アップロードセッション期限に基づいてクリーンアップタスクをスケジューリング
+        from app.background.tasks import schedule_session_cleanup
+        schedule_session_cleanup.send(session.id, session.expiresAt.isoformat())
+        
         return InitiateUploadResponse(
             file_id=file.id,
             share_id=share_id,
@@ -324,7 +328,7 @@ async def complete_upload(
             )
         
         # 暗号化キーを保存
-        await prisma.file.update(
+        updated_file = await prisma.file.update(
             where={"id": file.id},
             data={
                 "encryptedKey": request.encrypted_key,
@@ -342,6 +346,11 @@ async def complete_upload(
             where={"id": session.id},
             data={"status": "completed"}
         )
+        
+        # ファイル有効期限に基づいてクリーンアップタスクをスケジューリング
+        from app.background.tasks import schedule_file_cleanup
+        if updated_file.expiresAt:
+            schedule_file_cleanup.send(file.id, updated_file.expiresAt.isoformat())
         
         return {"message": "Upload completed successfully", "share_id": file.shareId}
         

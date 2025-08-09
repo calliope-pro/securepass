@@ -110,7 +110,7 @@ services:
       - ./backend:/app
       - backend_cache:/root/.cache
       - uv_cache:/root/.local/share/uv
-    command: uv run python -m app.background.worker_with_scheduler
+    command: uv run python -m app.background.worker
 
 volumes:
   postgres_data:
