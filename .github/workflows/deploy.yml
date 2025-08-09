@@ -47,24 +47,21 @@ jobs:
 
       - name: Railway Link Project
         run: |
-          # railway linkコマンドの構文を確認
-          echo "Checking railway link options..."
-          railway link --help
+          echo "Linking to Railway project..."
           
-          echo "Attempting to link to Railway project..."
-          
-          # プロジェクトIDでリンクを試行（正しい構文で）
-          if [ -n "${{ secrets.RAILWAY_PROJECT_ID }}" ]; then
-            echo "Linking with project ID: ${{ secrets.RAILWAY_PROJECT_ID }}"
-            railway link --project=${{ secrets.RAILWAY_PROJECT_ID }} || railway link "${{ secrets.RAILWAY_PROJECT_ID }}" || echo "Link with ID failed"
+          # 正しい構文でプロジェクトにリンク
+          PROJECT_ID="${{ secrets.RAILWAY_PROJECT_ID }}"
+          if [ -n "$PROJECT_ID" ]; then
+            echo "Linking with project ID: $PROJECT_ID"
+            railway link --project="$PROJECT_ID" --environment=MVP
+          else
+            echo "No project ID provided"
+            exit 1
           fi
           
-          # 対話的なリンクも試行
-          echo "Attempting interactive link..."
-          echo "n" | railway link || echo "Interactive link failed"
-          
-          # 状態確認
-          echo "Checking final status..."
+          # リンク後の状態確認
+          echo "Checking status after linking..."
+          railway whoami
           railway status
 
       - name: Setup Database Services
