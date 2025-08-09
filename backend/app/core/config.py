@@ -29,10 +29,10 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
-        "https://frontend-staging.up.railway.app",  # Railway ステージング環境
-        "https://backend-staging.up.railway.app",  # Railway ステージング環境
-        "https://frontend-mvp.up.railway.app",  # Railway MVP環境
-        "https://backend-mvp.up.railway.app",  # Railway MVP環境
+        "https://securepass-frontend-staging.up.railway.app",  # Railway ステージング環境
+        "https://securepass-backend-staging.up.railway.app",  # Railway ステージング環境
+        "https://securepass-frontend-mvp.up.railway.app",  # Railway MVP環境
+        "https://securepass-backend-mvp.up.railway.app",  # Railway MVP環境
     ]
     
     # ファイルアップロード設定
