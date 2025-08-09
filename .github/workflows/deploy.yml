@@ -11,42 +11,44 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
     environment: MVP  # GitHub Environmentを指定
-    
-    # デプロイは main ブランチへのプッシュ時のみ実行
-    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      CI: true  # CI環境を明示的に設定
+      CI: true
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Node.js and Yarn
-        run: |
-          # Node.js 22をインストール
-          curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-          apt-get install -y nodejs
-          
-          # Yarnをインストール
-          npm install -g yarn
-          
-          # バージョン確認
-          node --version
-          yarn --version
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Install frontend dependencies
+      - name: Create .env file
         run: |
-          cd frontend
-          yarn install
+          cat > .env << EOF
+          RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}
+          R2_ENDPOINT=${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          IP_HASH_SALT=${{ secrets.IP_HASH_SALT }}
+          AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_AUTH0_DOMAIN=${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}
+          NEXT_PUBLIC_AUTH0_CLIENT_ID=${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
+          NEXT_PUBLIC_AUTH0_AUDIENCE=${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
+          NEXT_PUBLIC_API_URL=https://securepass-back-mvp.up.railway.app
+          EOF
 
-      - name: Deploy All Services
+      - name: Install Railway CLI and Deploy
         run: |
-          # Project IDとEnvironment IDでリンク
-          railway link -p ${{ secrets.RAILWAY_PROJECT_ID }} -e ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          # Railway CLIをインストール
+          npm install -g @railway/cli@latest
+          
+          # プロジェクトにリンク
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           
           # 環境変数を設定
           railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
@@ -62,17 +64,9 @@ jobs:
           railway variables set NEXT_PUBLIC_AUTH0_AUDIENCE="${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}"
           railway variables set NEXT_PUBLIC_API_URL="https://securepass-back-mvp.up.railway.app"
           
-          # すべてのサービスをデプロイ
-          railway deploy
-
-      - name: Generate API Client
-        run: |
-          # API生成を実行
-          cd frontend
-          NEXT_PUBLIC_API_URL="https://securepass-back-mvp.up.railway.app" yarn generate-api
-          echo "API client generated successfully"
+          # デプロイを実行
+          railway up
 
       - name: Check Deployment Status
         run: |
-          echo "Checking deployment status..."
           railway status
