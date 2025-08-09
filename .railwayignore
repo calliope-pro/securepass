@@ -1,10 +1,5 @@
 # Railway Ignore - モノレポでの不要ファイル除外
 
-# ドキュメント
-*.md
-docs/
-.railway/
-
 # 環境ファイル
 .env*
 !.env.sample
