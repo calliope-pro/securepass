@@ -45,14 +45,21 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Railway Login
+      - name: Railway Link Project
         run: |
-          # 単純にrailway loginを実行
-          echo "Attempting Railway login..."
-          railway login
+          # プロジェクトにリンク（最新のRailway CLIでは必要）
+          echo "Linking to Railway project..."
           
-          # ログイン後の状態確認
-          echo "After login - checking status..."
+          # プロジェクトIDまたは名前でリンク
+          if [ -n "${{ secrets.RAILWAY_PROJECT_ID }}" ]; then
+            railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+          else
+            # プロジェクト名でリンクを試行
+            railway link --name securepass || railway link --name SecurePass || echo "Failed to link project"
+          fi
+          
+          # リンク後の状態確認
+          echo "After linking - checking status..."
           railway whoami
           railway status
 
