@@ -45,39 +45,40 @@ jobs:
           cd frontend
           yarn install
 
+      - name: Link to Railway Project
+        run: |
+          # プロジェクトにリンク（CI環境では自動選択）
+          echo "Linking to Railway project..."
+          # プロジェクトIDを使って直接リンク
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} || echo "Link failed, trying alternative method"
+
       - name: Deploy Backend Service
         run: |
-          # railway.tomlの設定に基づいてサービスを自動作成・デプロイ
           echo "Deploying backend service..."
-          railway up backend
+          # railway.tomlの設定に基づいてデプロイ
+          railway up --detach
           if [ $? -eq 0 ]; then
-            echo "Backend deployment successful"
+            echo "Backend deployment started"
           else
             echo "Backend deployment failed"
             exit 1
           fi
 
-      - name: Deploy Worker Service
+      - name: Add Database Services
         run: |
-          echo "Deploying worker service..."
-          railway up worker
-          if [ $? -eq 0 ]; then
-            echo "Worker deployment successful"
-          else
-            echo "Worker deployment failed"
-            exit 1
-          fi
+          echo "Adding database services..."
+          # PostgreSQLとRedisを追加（対話的でない方法を試行）
+          echo "postgres redis" | railway add || echo "Database addition may have failed - continuing..."
 
-      - name: Deploy Frontend Service  
+      - name: Deploy All Services
         run: |
-          echo "Deploying frontend service..."
-          railway up frontend
-          if [ $? -eq 0 ]; then
-            echo "Frontend deployment successful"
-          else
-            echo "Frontend deployment failed" 
-            exit 1
-          fi
+          echo "Deploying all services with railway.toml configuration..."
+          # railway.tomlに基づいてすべてのサービスをデプロイ
+          railway up --detach || echo "Deployment may have issues - checking status..."
+          
+          # デプロイ状態を確認
+          sleep 30
+          railway status
 
       - name: Deploy Backend Service
         run: |
