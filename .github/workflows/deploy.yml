@@ -31,8 +31,10 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: 'frontend/yarn.lock'
 
-      - name: Setup Railway CLI
-        uses: railwayapp/cli@v3
+      - name: Install Railway CLI
+        run: |
+          npm install -g @railway/cli
+          railway --version
 
       - name: Install frontend dependencies
         run: |
