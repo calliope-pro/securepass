@@ -51,8 +51,9 @@ jobs:
           railway --version
           echo "Starting deployment with project token..."
           
-          # プロジェクトIDと環境IDを明示的に指定してデプロイ
-          railway up --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }} ${{ secrets.RAILWAY_PROJECT_ID }}
+          # まずプロジェクトにリンクしてからデプロイ
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          railway up --ci
 
       - name: Check Deployment Status
         run: |
