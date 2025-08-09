@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     environment: MVP  # GitHub Environmentを指定
     
     env:
@@ -64,11 +65,8 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-      - name: Install Railway CLI and Deploy
+      - name: Deploy to Railway Services
         run: |
-          # Railway CLIをインストール
-          npm install -g @railway/cli@latest
-          
           echo "Railway CLI version:"
           railway --version
           
