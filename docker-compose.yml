@@ -114,7 +114,7 @@ services:
       - ./backend:/app
       - backend_cache:/root/.cache
       - uv_cache:/root/.local/share/uv
-    command: uv run python -m app.background.worker
+    command: uv run worker
 
 volumes:
   postgres_data:

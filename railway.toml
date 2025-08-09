@@ -1,0 +1,58 @@
+# Railway IaC Configuration for SecurePass Platform
+# This file defines the infrastructure setup for the entire SecurePass platform
+
+[backend]
+[backend.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+rootDirectory = "backend"
+# 監視パターン: バックエンドコードの変更のみでトリガー
+watchPatterns = [
+  "backend/**",
+]
+
+[backend.deploy]
+preDeployCommand = ["uv run prisma migrate deploy", "uv run upsert-initial-plans"]
+startCommand = "uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[frontend]
+[frontend.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+rootDirectory = "frontend"
+# 監視パターン: フロントエンドコードとAPI変更でトリガー
+watchPatterns = [
+  "frontend/**",
+  "backend/app/api/**",
+  "backend/app/schemas/**"
+]
+
+[frontend.deploy]
+preDeployCommand = ["yarn generate-api"]
+startCommand = "PORT=${PORT:-3000} yarn start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[worker]
+[worker.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+rootDirectory = "backend"
+# 監視パターン: バックグラウンドタスクコードの変更でトリガー
+watchPatterns = [
+  "backend/app/background/**",
+  "backend/app/services/**",
+  "backend/app/core/**",
+  "backend/pyproject.toml"
+]
+
+[worker.deploy]
+startCommand = "uv run python -m app.background.worker_with_scheduler"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

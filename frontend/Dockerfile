@@ -35,5 +35,4 @@ RUN yarn build
 # ポート3000を公開
 EXPOSE 3000
 
-# サーバーを起動（Railway の動的ポート対応）
-CMD ["sh", "-c", "PORT=${PORT:-3000} yarn start"]
+# 起動コマンドはrailway.tomlで定義
