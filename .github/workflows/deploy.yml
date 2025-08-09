@@ -39,15 +39,31 @@ jobs:
           cd frontend
           yarn install
 
+      - name: Railway Login
+        run: |
+          # Railway CLIで認証を初期化
+          railway whoami || railway login
+
       - name: Setup Database Services
         run: |
-          # PostgreSQL データベースサービスを追加
-          echo "Setting up PostgreSQL database..."
-          railway add -d postgres
+          # 既存サービスをチェックし、必要に応じて追加
+          echo "Checking existing services..."
           
-          # Redis サービスを追加  
-          echo "Setting up Redis cache..."
-          railway add -d redis
+          # PostgreSQL サービスのチェックと追加
+          if ! railway status | grep -q postgres; then
+            echo "Setting up PostgreSQL database..."
+            railway add -d postgres
+          else
+            echo "PostgreSQL service already exists, skipping..."
+          fi
+          
+          # Redis サービスのチェックと追加
+          if ! railway status | grep -q redis; then
+            echo "Setting up Redis cache..."
+            railway add -d redis
+          else
+            echo "Redis service already exists, skipping..."
+          fi
           
           # 少し待機してサービスが利用可能になるまで待つ
           echo "Waiting for database services to initialize..."
