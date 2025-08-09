@@ -36,7 +36,8 @@ dependencies = [
 ]
 
 [project.scripts]
-create-initial-plans = "scripts.create_initial_plans:main"
+upsert-initial-plans = "scripts.upsert_initial_plans:main"
+securepass-worker = "app.background.worker:main"
 
 [project.optional-dependencies]
 dev = [

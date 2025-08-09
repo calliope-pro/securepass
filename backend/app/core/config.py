@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     # Stripe決済
     STRIPE_SECRET_KEY: str = os.environ["STRIPE_SECRET_KEY"]
     STRIPE_WEBHOOK_SECRET: str = os.environ["STRIPE_WEBHOOK_SECRET"]
+    STRIPE_PRO_PRICE_ID: str = os.environ["STRIPE_PRO_PRICE_ID"]
+    STRIPE_ENTERPRISE_PRICE_ID: str = os.environ["STRIPE_ENTERPRISE_PRICE_ID"]
 
 
     class Config:

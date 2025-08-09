@@ -30,4 +30,4 @@ RUN uv run prisma generate
 EXPOSE 8000
 
 # 起動コマンド（マイグレーション実行、初期プラン作成後にサーバー起動）
-CMD ["sh", "-c", "uv run prisma migrate deploy && uv run create-initial-plans && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uv run prisma migrate deploy && uv run upsert-initial-plans && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
