@@ -47,10 +47,13 @@ jobs:
 
       - name: Link to Railway Project
         run: |
-          # プロジェクトにリンク（CI環境では自動選択）
+          # 正しいオプション構文でプロジェクトと環境にリンク
           echo "Linking to Railway project..."
-          # プロジェクトIDを使って直接リンク
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }} || echo "Link failed, trying alternative method"
+          railway link --project=${{ secrets.RAILWAY_PROJECT_ID }} --environment=${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          
+          # リンク状態を確認
+          echo "Link status:"
+          railway status
 
       - name: Deploy Backend Service
         run: |
