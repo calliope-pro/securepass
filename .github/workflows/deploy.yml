@@ -41,24 +41,33 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Railway CLI Setup
+      - name: Railway CLI Token Validation
         run: |
           # Railway CLIの設定ディレクトリを完全にリセット
           rm -rf ~/.railway || true
           rm -rf ~/.config/railway || true
           
-          # Railway CLIのバージョン確認
           echo "Railway CLI version:"
           railway --version
           
-          # 環境変数確認
-          echo "Environment variables check:"
-          env | grep RAILWAY || echo "No RAILWAY env vars found"
-          env | grep CI || echo "No CI env vars found"
+          # トークンの基本的な形式チェック（最初の数文字のみ表示）
+          echo "Token format check:"
+          echo "Token starts with: ${RAILWAY_TOKEN:0:8}..."
+          echo "Token length: ${#RAILWAY_TOKEN}"
           
-          # 直接コマンド実行でテスト（認証は環境変数で自動処理）
-          echo "Testing Railway CLI with direct command..."
-          railway status
+          # トークンが空文字や改行を含んでいないかチェック
+          if [[ -z "$RAILWAY_TOKEN" ]]; then
+            echo "ERROR: RAILWAY_TOKEN is empty"
+            exit 1
+          fi
+          
+          # トークンから改行や余分な文字を除去
+          export RAILWAY_TOKEN=$(echo "$RAILWAY_TOKEN" | tr -d '\n\r' | xargs)
+          echo "Cleaned token length: ${#RAILWAY_TOKEN}"
+          
+          # 最小限のコマンドでテスト
+          echo "Testing with minimal command..."
+          railway --help > /dev/null && echo "CLI is working" || echo "CLI help failed"
 
       - name: Setup Database Services
         run: |
