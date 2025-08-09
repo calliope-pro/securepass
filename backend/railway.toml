@@ -7,7 +7,7 @@ watchPatterns = [
 ]
 
 [deploy]
-preDeployCommand = "uv run prisma migrate deploy && uv run upsert-initial-plans"
+preDeployCommand = "sh -c 'uv run prisma migrate deploy && uv run upsert-initial-plans'"
 startCommand = "sh -c 'uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT'"
 healthcheckPath = "/health"
 healthcheckTimeout = 300

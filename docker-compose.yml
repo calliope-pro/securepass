@@ -72,7 +72,6 @@ services:
     environment:
       NEXT_PUBLIC_API_DOMAIN: http://localhost:8000
       NEXT_PUBLIC_ENVIRONMENT: development
-      # Auth0 configuration
       NEXT_PUBLIC_AUTH0_DOMAIN: ${NEXT_PUBLIC_AUTH0_DOMAIN}
       NEXT_PUBLIC_AUTH0_CLIENT_ID: ${NEXT_PUBLIC_AUTH0_CLIENT_ID}
       NEXT_PUBLIC_AUTH0_AUDIENCE: ${NEXT_PUBLIC_AUTH0_AUDIENCE}
@@ -84,7 +83,7 @@ services:
     depends_on:
       - backend
 
-  # Dramatiqワーカー + スケジューラー（統合版）
+  # ARQ Worker
   worker:
     build:
       context: ./backend
