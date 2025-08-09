@@ -47,9 +47,9 @@ jobs:
 
       - name: Deploy Backend Service
         run: |
-          # entrypoint.shを参考にした直接デプロイ
+          # railway.tomlの設定に基づいてサービスを自動作成・デプロイ
           echo "Deploying backend service..."
-          railway up --service backend
+          railway up backend
           if [ $? -eq 0 ]; then
             echo "Backend deployment successful"
           else
@@ -60,7 +60,7 @@ jobs:
       - name: Deploy Worker Service
         run: |
           echo "Deploying worker service..."
-          railway up --service worker
+          railway up worker
           if [ $? -eq 0 ]; then
             echo "Worker deployment successful"
           else
@@ -71,7 +71,7 @@ jobs:
       - name: Deploy Frontend Service  
         run: |
           echo "Deploying frontend service..."
-          railway up --service frontend
+          railway up frontend
           if [ $? -eq 0 ]; then
             echo "Frontend deployment successful"
           else
