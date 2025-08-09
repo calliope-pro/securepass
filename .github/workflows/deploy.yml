@@ -15,8 +15,10 @@ jobs:
     
     # デプロイは main ブランチへのプッシュ時のみ実行
     # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      CI: true  # CI環境を明示的に設定
 
     steps:
       - name: Checkout code
@@ -39,10 +41,22 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Railway Login
+      - name: Railway CLI Debug
         run: |
-          # Railway CLIで認証を初期化
-          railway whoami || railway login
+          # 認証状態をクリア
+          railway logout || true
+          
+          # Railway CLIのバージョンと環境変数を確認
+          echo "Railway CLI version:"
+          railway --version
+          
+          echo "Environment variables check:"
+          env | grep RAILWAY || echo "No RAILWAY env vars found"
+          env | grep CI || echo "No CI env vars found"
+          
+          # 認証テスト
+          echo "Testing authentication..."
+          railway whoami
 
       - name: Setup Database Services
         run: |
