@@ -41,22 +41,24 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Railway CLI Debug
+      - name: Railway CLI Setup
         run: |
-          # 認証状態をクリア
-          railway logout || true
+          # Railway CLIの設定ディレクトリを完全にリセット
+          rm -rf ~/.railway || true
+          rm -rf ~/.config/railway || true
           
-          # Railway CLIのバージョンと環境変数を確認
+          # Railway CLIのバージョン確認
           echo "Railway CLI version:"
           railway --version
           
+          # 環境変数確認
           echo "Environment variables check:"
           env | grep RAILWAY || echo "No RAILWAY env vars found"
           env | grep CI || echo "No CI env vars found"
           
-          # 認証テスト
-          echo "Testing authentication..."
-          railway whoami
+          # 直接コマンド実行でテスト（認証は環境変数で自動処理）
+          echo "Testing Railway CLI with direct command..."
+          railway status
 
       - name: Setup Database Services
         run: |
