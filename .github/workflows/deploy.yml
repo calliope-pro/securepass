@@ -1,0 +1,156 @@
+name: Deploy to Railway
+
+on:
+  push:
+    # branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    
+    # デプロイは main ブランチへのプッシュ時のみ実行
+    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: 'frontend/yarn.lock'
+
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          yarn install
+
+      - name: Setup Database Services
+        run: |
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          
+          # PostgreSQL データベースサービスを追加
+          echo "Setting up PostgreSQL database..."
+          railway add -d postgresql
+          
+          # Redis サービスを追加  
+          echo "Setting up Redis cache..."
+          railway add -d redis
+          
+          # 少し待機してサービスが利用可能になるまで待つ
+          echo "Waiting for database services to initialize..."
+          sleep 30
+
+      - name: Deploy Backend Service
+        run: |
+          railway service --name backend
+          
+          # データベースURLを動的に取得して設定
+          # PostgreSQL URLを取得
+          railway service --name postgresql
+          POSTGRES_URL=$(railway variables --kv | grep DATABASE_URL | cut -d'=' -f2)
+          
+          # Redis URLを取得
+          railway service --name redis  
+          REDIS_URL=$(railway variables --kv | grep REDIS_URL | cut -d'=' -f2)
+          
+          # バックエンドサービスに戻って環境変数を設定
+          railway service --name backend
+          railway variables set DATABASE_URL="$POSTGRES_URL"
+          railway variables set REDIS_URL="$REDIS_URL"
+          railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
+          railway variables set R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
+          railway variables set R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
+          railway variables set R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}"
+          railway variables set SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          railway variables set IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
+          railway variables set AUTH0_DOMAIN="${{ secrets.AUTH0_DOMAIN }}"
+          railway variables set AUTH0_AUDIENCE="${{ secrets.AUTH0_AUDIENCE }}"
+          
+          # バックエンドをデプロイ
+          railway deploy --service backend
+
+      - name: Deploy Worker Service  
+        run: |
+          railway service --name worker
+          
+          # ワーカーサービスにデータベースURLを設定（バックエンドと同じ）
+          # データベースURLを再取得
+          railway service --name postgresql
+          POSTGRES_URL=$(railway variables --kv | grep DATABASE_URL | cut -d'=' -f2)
+          railway service --name redis
+          REDIS_URL=$(railway variables --kv | grep REDIS_URL | cut -d'=' -f2)
+          
+          railway service --name worker
+          railway variables set DATABASE_URL="$POSTGRES_URL"
+          railway variables set REDIS_URL="$REDIS_URL"
+          railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
+          railway variables set R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
+          railway variables set R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
+          railway variables set R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}"
+          railway variables set SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          railway variables set IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
+          
+          # ワーカーをデプロイ
+          railway deploy --service worker
+
+      - name: Get Backend URL and Generate API Client
+        id: backend-url
+        run: |
+          railway service --name backend
+          BACKEND_URL=$(railway status --json | jq -r '.deployments[0].url')
+          echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          echo "Backend URL: $BACKEND_URL"
+          
+          # バックエンドがデプロイされた後にAPI生成を実行
+          cd frontend
+          NEXT_PUBLIC_API_URL="$BACKEND_URL" yarn generate-api
+          echo "API client generated successfully"
+
+      - name: Deploy Frontend Service
+        run: |
+          railway service --name frontend
+          
+          # フロントエンド用の環境変数を設定
+          railway variables set NEXT_PUBLIC_AUTH0_DOMAIN="${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}"
+          railway variables set NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}"
+          railway variables set NEXT_PUBLIC_AUTH0_AUDIENCE="${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}"
+          railway variables set NEXT_PUBLIC_API_URL="${{ steps.backend-url.outputs.url || secrets.BACKEND_URL }}"
+          
+          # フロントエンドをデプロイ
+          railway deploy --service frontend
+
+      - name: Wait for deployment completion
+        run: |
+          echo "Waiting for all services to be fully deployed..."
+          sleep 60
+          
+          # 各サービスの状態を確認
+          echo "=== Backend Status ==="
+          railway service --name backend
+          railway status
+          
+          echo "=== Frontend Status ==="
+          railway service --name frontend  
+          railway status
+          
+          echo "=== Worker Status ==="
+          railway service --name worker
+          railway status
+          
+          echo "=== Database Services Status ==="
+          railway service --name postgresql
+          railway status
+          
+          railway service --name redis
+          railway status

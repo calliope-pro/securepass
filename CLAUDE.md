@@ -42,7 +42,7 @@ uv run ruff check .
 uv run mypy .
 
 # バックグラウンドタスク関連
-uv run python -m app.background.worker_with_scheduler   # ワーカー+スケジューラー統合版
+uv run worker   # 統合ワーカーコマンド
 
 # Docker Compose経由でのバックエンド操作（推奨）
 docker compose exec backend uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -52,7 +52,7 @@ docker compose exec backend uv run ruff check .
 docker compose exec backend uv run mypy .
 
 # Docker Compose経由でのバックグラウンドタスク操作
-docker compose exec worker uv run python -m app.background.worker_with_scheduler
+docker compose exec worker uv run worker
 ```
 
 ### フロントエンド（Next.js/TypeScript）
