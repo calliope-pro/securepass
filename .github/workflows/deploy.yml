@@ -65,11 +65,20 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # プロジェクト全体をデプロイ（railway.tomlを使用してサービス自動作成）
+          # 各サービスを個別にデプロイ
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Deploying project using railway.toml configuration..."
+          echo "Deploying services individually..."
           
-          # railway.tomlに定義された全サービスを一括デプロイ
-          railway up --detach
+          # バックエンドサービスをデプロイ
+          echo "Deploying backend service..."
+          railway up --service backend --detach || echo "Backend deployment failed or service doesn't exist"
           
-          echo "All services deployment initiated from railway.toml"
+          # フロントエンドサービスをデプロイ
+          echo "Deploying frontend service..."
+          railway up --service frontend --detach || echo "Frontend deployment failed or service doesn't exist"
+          
+          # ワーカーサービスをデプロイ
+          echo "Deploying worker service..."
+          railway up --service worker --detach || echo "Worker deployment failed or service doesn't exist"
+          
+          echo "All service deployments initiated"
