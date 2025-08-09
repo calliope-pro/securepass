@@ -11,10 +11,12 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     environment: MVP  # GitHub Environmentを指定
     
     env:
       CI: true
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -42,6 +44,23 @@ jobs:
           EOF
 
       - name: Deploy to Railway
-        uses: bervProject/railway-deploy@main
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          echo "Railway CLI version:"
+          railway --version
+          
+          # トークンが設定されているか確認
+          echo "Checking token..."
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "RAILWAY_TOKEN is not set"
+            exit 1
+          else
+            echo "RAILWAY_TOKEN is set (length: ${#RAILWAY_TOKEN})"
+          fi
+          
+          # 認証確認
+          echo "Checking authentication..."
+          railway whoami
+          
+          # プロジェクト全体をデプロイ（サービス自動作成）
+          echo "Starting deployment..."
+          railway up --detach
