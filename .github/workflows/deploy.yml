@@ -17,6 +17,7 @@ jobs:
     env:
       CI: true
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
     steps:
       - name: Checkout code
@@ -48,8 +49,8 @@ jobs:
           echo "Railway CLI version:"
           railway --version
           
-          # トークンが設定されているか確認
-          echo "Checking token..."
+          # トークンとプロジェクトIDが設定されているか確認
+          echo "Checking configuration..."
           if [ -z "$RAILWAY_TOKEN" ]; then
             echo "RAILWAY_TOKEN is not set"
             exit 1
@@ -57,10 +58,13 @@ jobs:
             echo "RAILWAY_TOKEN is set (length: ${#RAILWAY_TOKEN})"
           fi
           
-          # 認証確認
-          echo "Checking authentication..."
-          railway whoami
+          if [ -z "$RAILWAY_PROJECT_ID" ]; then
+            echo "RAILWAY_PROJECT_ID is not set"
+            exit 1
+          else
+            echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
+          fi
           
-          # プロジェクト全体をデプロイ（サービス自動作成）
-          echo "Starting deployment..."
+          # プロジェクトを明示的に指定してデプロイ
+          echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
           railway up --detach
