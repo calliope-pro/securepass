@@ -41,7 +41,7 @@ jobs:
         run: |
           # PostgreSQL データベースサービスを追加
           echo "Setting up PostgreSQL database..."
-          railway add -d postgresql
+          railway add -d postgres
           
           # Redis サービスを追加  
           echo "Setting up Redis cache..."
