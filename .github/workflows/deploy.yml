@@ -45,27 +45,16 @@ jobs:
           cd frontend
           yarn install
 
-      - name: Railway Project Connection Debug
+      - name: Railway Login
         run: |
-          # プロジェクト設定ファイルの確認
-          echo "Checking railway.toml configuration..."
-          if [ -f "railway.toml" ]; then
-            echo "railway.toml found:"
-            head -20 railway.toml
-          else
-            echo "railway.toml not found"
-          fi
+          # 単純にrailway loginを実行
+          echo "Attempting Railway login..."
+          railway login
           
-          # 認証状態の詳細確認
-          echo "Railway CLI authentication debug..."
-          railway whoami 2>&1 || echo "Authentication failed"
-          
-          # プロジェクト情報の取得を試行
-          echo "Attempting to get project info..."
-          railway variables 2>&1 || echo "Failed to get variables"
-          
-          echo "Railway CLI current context..."
-          railway status 2>&1 || echo "Failed to get status"
+          # ログイン後の状態確認
+          echo "After login - checking status..."
+          railway whoami
+          railway status
 
       - name: Setup Database Services
         run: |
