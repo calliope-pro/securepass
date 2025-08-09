@@ -15,7 +15,9 @@ jobs:
     
     # デプロイは main ブランチへのプッシュ時のみ実行
     # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
