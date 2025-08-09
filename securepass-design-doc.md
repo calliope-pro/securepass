@@ -454,7 +454,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_DOMAIN: http://localhost:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules

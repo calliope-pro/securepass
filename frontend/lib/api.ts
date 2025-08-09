@@ -20,13 +20,21 @@ import {
 // API設定
 declare const process: {
   env: {
-    NEXT_PUBLIC_API_URL?: string;
+    NEXT_PUBLIC_API_DOMAIN?: string;
     NEXT_PUBLIC_AUTH0_DOMAIN?: string;
     NEXT_PUBLIC_AUTH0_CLIENT_ID?: string;
   };
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!
+// ドメインからAPIのベースURLを構築
+function buildApiUrl(domain: string): string {
+  // localhost/127.0.0.1の場合はhttpを使用、それ以外はhttpsを使用
+  const protocol = domain.includes('localhost') || domain.includes('127.0.0.1') ? 'http' : 'https'
+  return `${protocol}://${domain}`
+}
+
+const API_DOMAIN = process.env.NEXT_PUBLIC_API_DOMAIN!
+const API_URL = buildApiUrl(API_DOMAIN)
 console.log('API_URL configured as:', API_URL)
 
 // OpenAPI.BASEを即座に設定（Auth0Context.tsxでも設定されるが、タイミング問題を防ぐため）

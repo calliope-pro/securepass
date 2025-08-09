@@ -80,7 +80,9 @@ export const Auth0Provider: React.FC<Auth0ProviderProps> = ({ children }) => {
         }
 
         // OpenAPI設定
-        OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL!
+        const apiDomain = process.env.NEXT_PUBLIC_API_DOMAIN!
+        const protocol = apiDomain.startsWith('localhost') || apiDomain.startsWith('127.0.0.1') ? 'http' : 'https'
+        OpenAPI.BASE = `${protocol}://${apiDomain}`
         console.log('OpenAPI BASE URL:', OpenAPI.BASE)
         
         // 認証状態をチェック
