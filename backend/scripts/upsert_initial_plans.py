@@ -26,7 +26,7 @@ async def upsert_initial_plans():
         # 無料プラン
         free_plan = await prisma.plan.upsert(
             where={"name": "free"},
-            data={
+            update={
                 "displayName": "Free",
                 "price": 0,  # 無料
                 "currency": "usd",
@@ -67,7 +67,7 @@ async def upsert_initial_plans():
             
         pro_plan = await prisma.plan.upsert(
             where={"name": "pro"},
-            data=pro_data,
+            update=pro_data,
             create={
                 "name": "pro",
                 **pro_data
@@ -90,7 +90,7 @@ async def upsert_initial_plans():
             
         enterprise_plan = await prisma.plan.upsert(
             where={"name": "enterprise"},
-            data=enterprise_data,
+            update=enterprise_data,
             create={
                 "name": "enterprise",
                 **enterprise_data
