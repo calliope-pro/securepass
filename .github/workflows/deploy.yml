@@ -65,29 +65,25 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # Railway deployコマンドでサービス自動作成とデプロイ
+          # Railway API を使って直接サービス作成を試行
           echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Using railway deploy for service provisioning..."
+          echo "Attempting direct service creation via Railway API..."
           
-          # バックエンドサービスをプロビジョニング（Dockerテンプレート使用）
-          echo "Provisioning backend service..."
-          cd backend
-          railway deploy --template docker || echo "Backend provisioning failed - trying alternative"
-          railway up --detach || echo "Backend deployment failed"
-          cd ..
+          # Railway API でサービス作成（curl使用）
+          echo "Creating backend service via API..."
+          curl -X POST \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name": "backend", "projectId": "'$RAILWAY_PROJECT_ID'"}' \
+            https://backboard.railway.com/graphql || echo "Backend service creation failed"
+            
+          # 少し待機
+          sleep 5
           
-          # フロントエンドサービスをプロビジョニング
-          echo "Provisioning frontend service..."
-          cd frontend  
-          railway deploy --template docker || echo "Frontend provisioning failed - trying alternative"
-          railway up --detach || echo "Frontend deployment failed"
-          cd ..
+          # 作成されたサービスにデプロイを試行
+          echo "Attempting deployment..."
+          cd backend && railway up --detach && cd .. || echo "Backend deployment failed"
+          cd frontend && railway up --detach && cd .. || echo "Frontend deployment failed"  
+          cd backend && railway up --detach && cd .. || echo "Worker deployment failed"
           
-          # ワーカーサービスをプロビジョニング
-          echo "Provisioning worker service..."
-          cd backend
-          railway deploy --template docker || echo "Worker provisioning failed - trying alternative"
-          railway up --detach || echo "Worker deployment failed"
-          cd ..
-          
-          echo "All services provisioned and deployed"
+          echo "Service creation and deployment attempted"
