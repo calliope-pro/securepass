@@ -25,12 +25,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-          cache-dependency-path: 'frontend/yarn.lock'
+      - name: Install Node.js and Yarn
+        run: |
+          # Node.js 22をインストール
+          curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+          apt-get install -y nodejs
+          
+          # Yarnをインストール
+          npm install -g yarn
+          
+          # バージョン確認
+          node --version
+          yarn --version
 
       - name: Install frontend dependencies
         run: |
