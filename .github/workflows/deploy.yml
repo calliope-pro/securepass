@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     environment: MVP  # GitHub Environmentを指定
     
     # デプロイは main ブランチへのプッシュ時のみ実行
@@ -30,11 +31,6 @@ jobs:
           node-version: '22'
           cache: 'yarn'
           cache-dependency-path: 'frontend/yarn.lock'
-
-      - name: Install Railway CLI
-        run: |
-          npm install -g @railway/cli
-          railway --version
 
       - name: Install frontend dependencies
         run: |
