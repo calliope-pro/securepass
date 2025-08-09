@@ -44,7 +44,7 @@ jobs:
       - name: Deploy All Services
         run: |
           # Project IDとEnvironment IDでリンク
-          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          railway link -p ${{ secrets.RAILWAY_PROJECT_ID }} -e ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           
           # 環境変数を設定
           railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
