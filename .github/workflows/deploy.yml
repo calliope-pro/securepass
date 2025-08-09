@@ -31,74 +31,20 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: 'frontend/yarn.lock'
 
-      - name: Install Railway CLI
-        run: |
-          # npm経由でRailway CLIをインストール
-          npm i -g @railway/cli
-          
-          # インストール後の確認
-          railway --version
+      - name: Setup Railway CLI
+        uses: railwayapp/cli@v3
 
       - name: Install frontend dependencies
         run: |
           cd frontend
           yarn install
 
-      - name: Link to Railway Project
-        run: |
-          # 正しいオプション構文でプロジェクトと環境にリンク
-          echo "Linking to Railway project..."
-          railway link --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }} ${{ secrets.RAILWAY_PROJECT_ID }}
-          
-          # リンク状態を確認
-          echo "Link status:"
-          railway status
-
-      - name: Deploy Backend Service
-        run: |
-          echo "Deploying backend service..."
-          # railway.tomlの設定に基づいてデプロイ
-          railway up --detach
-          if [ $? -eq 0 ]; then
-            echo "Backend deployment started"
-          else
-            echo "Backend deployment failed"
-            exit 1
-          fi
-
-      - name: Add Database Services
-        run: |
-          echo "Adding database services..."
-          # PostgreSQLとRedisを追加（対話的でない方法を試行）
-          echo "postgres redis" | railway add || echo "Database addition may have failed - continuing..."
-
       - name: Deploy All Services
         run: |
-          echo "Deploying all services with railway.toml configuration..."
-          # railway.tomlに基づいてすべてのサービスをデプロイ
-          railway up --detach || echo "Deployment may have issues - checking status..."
+          # Project IDとEnvironment IDでリンク
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} --environment ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           
-          # デプロイ状態を確認
-          sleep 30
-          railway status
-
-      - name: Deploy Backend Service
-        run: |
-          railway service --name backend
-          
-          # データベースURLを動的に取得して設定
-          # PostgreSQL URLを取得
-          railway service --name postgresql
-          POSTGRES_URL=$(railway variables --kv | grep DATABASE_URL | cut -d'=' -f2)
-          
-          # Redis URLを取得
-          railway service --name redis  
-          REDIS_URL=$(railway variables --kv | grep REDIS_URL | cut -d'=' -f2)
-          
-          # バックエンドサービスに戻って環境変数を設定
-          railway service --name backend
-          railway variables set DATABASE_URL="$POSTGRES_URL"
-          railway variables set REDIS_URL="$REDIS_URL"
+          # 環境変数を設定
           railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
           railway variables set R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
           railway variables set R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
@@ -107,81 +53,22 @@ jobs:
           railway variables set IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
           railway variables set AUTH0_DOMAIN="${{ secrets.AUTH0_DOMAIN }}"
           railway variables set AUTH0_AUDIENCE="${{ secrets.AUTH0_AUDIENCE }}"
-          
-          # バックエンドをデプロイ
-          railway deploy --service backend
-
-      - name: Deploy Worker Service  
-        run: |
-          railway service --name worker
-          
-          # ワーカーサービスにデータベースURLを設定（バックエンドと同じ）
-          # データベースURLを再取得
-          railway service --name postgresql
-          POSTGRES_URL=$(railway variables --kv | grep DATABASE_URL | cut -d'=' -f2)
-          railway service --name redis
-          REDIS_URL=$(railway variables --kv | grep REDIS_URL | cut -d'=' -f2)
-          
-          railway service --name worker
-          railway variables set DATABASE_URL="$POSTGRES_URL"
-          railway variables set REDIS_URL="$REDIS_URL"
-          railway variables set R2_ENDPOINT="${{ secrets.R2_ENDPOINT }}"
-          railway variables set R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
-          railway variables set R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
-          railway variables set R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}"
-          railway variables set SECRET_KEY="${{ secrets.SECRET_KEY }}"
-          railway variables set IP_HASH_SALT="${{ secrets.IP_HASH_SALT }}"
-          
-          # ワーカーをデプロイ
-          railway deploy --service worker
-
-      - name: Generate API Client with Backend URL
-        id: backend-url
-        run: |
-          # 既存のRailwayエンドポイントを使用
-          BACKEND_URL="https://securepass-back-mvp.up.railway.app"
-          echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
-          echo "Backend URL: $BACKEND_URL"
-          
-          # API生成を実行
-          cd frontend
-          NEXT_PUBLIC_API_URL="$BACKEND_URL" yarn generate-api
-          echo "API client generated successfully"
-
-      - name: Deploy Frontend Service
-        run: |
-          railway service --name frontend
-          
-          # フロントエンド用の環境変数を設定
           railway variables set NEXT_PUBLIC_AUTH0_DOMAIN="${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}"
           railway variables set NEXT_PUBLIC_AUTH0_CLIENT_ID="${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}"
           railway variables set NEXT_PUBLIC_AUTH0_AUDIENCE="${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}"
           railway variables set NEXT_PUBLIC_API_URL="https://securepass-back-mvp.up.railway.app"
           
-          # フロントエンドをデプロイ
-          railway deploy --service frontend
+          # すべてのサービスをデプロイ
+          railway deploy
 
-      - name: Wait for deployment completion
+      - name: Generate API Client
         run: |
-          echo "Waiting for all services to be fully deployed..."
-          sleep 60
-          
-          # 各サービスの状態を確認
-          echo "=== Backend Status ==="
-          railway service --name backend
-          railway status
-          
-          echo "=== Frontend Status ==="
-          railway service --name frontend  
-          railway status
-          
-          echo "=== Worker Status ==="
-          railway service --name worker
-          railway status
-          
-          echo "=== Database Services Status ==="
-          railway service --name postgresql
-          railway status
-          
-          railway service --name redis
+          # API生成を実行
+          cd frontend
+          NEXT_PUBLIC_API_URL="https://securepass-back-mvp.up.railway.app" yarn generate-api
+          echo "API client generated successfully"
+
+      - name: Check Deployment Status
+        run: |
+          echo "Checking deployment status..."
           railway status
