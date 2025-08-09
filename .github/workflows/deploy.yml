@@ -23,47 +23,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
-      - name: Create .env file
-        run: |
-          cat > .env << EOF
-          RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}
-          R2_ENDPOINT=${{ secrets.R2_ENDPOINT }}
-          R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          IP_HASH_SALT=${{ secrets.IP_HASH_SALT }}
-          AUTH0_DOMAIN=${{ secrets.AUTH0_DOMAIN }}
-          AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }}
-          NEXT_PUBLIC_AUTH0_DOMAIN=${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}
-          NEXT_PUBLIC_AUTH0_CLIENT_ID=${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}
-          NEXT_PUBLIC_AUTH0_AUDIENCE=${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
-          NEXT_PUBLIC_API_URL=https://securepass-back-mvp.up.railway.app
-          EOF
 
-      - name: Deploy to Railway
-        run: |
-          echo "Railway CLI version:"
-          railway --version
-          
-          # トークンとプロジェクトIDが設定されているか確認
-          echo "Checking configuration..."
-          if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "RAILWAY_TOKEN is not set"
-            exit 1
-          else
-            echo "RAILWAY_TOKEN is set (length: ${#RAILWAY_TOKEN})"
-          fi
-          
-          if [ -z "$RAILWAY_PROJECT_ID" ]; then
-            echo "RAILWAY_PROJECT_ID is not set"
-            exit 1
-          else
-            echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
-          fi
           
       - name: Configure Environment Variables
         env:
@@ -88,49 +49,52 @@ jobs:
         run: |
           echo "Configuring environment variables for each service..."
           
-          # Backend環境変数設定
+          # Backend環境変数設定（一括設定）
           echo "Setting backend environment variables..."
-          railway variables --service backend --set "DATABASE_URL=${DATABASE_URL}"
-          railway variables --service backend --set "REDIS_URL=${REDIS_URL}"
-          railway variables --service backend --set "R2_ENDPOINT=${R2_ENDPOINT}"
-          railway variables --service backend --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}"
-          railway variables --service backend --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}"
-          railway variables --service backend --set "R2_BUCKET_NAME=${R2_BUCKET_NAME}"
-          railway variables --service backend --set "SECRET_KEY=${SECRET_KEY}"
-          railway variables --service backend --set "IP_HASH_SALT=${IP_HASH_SALT}"
-          railway variables --service backend --set "ENVIRONMENT=production"
-          railway variables --service backend --set "AUTH0_DOMAIN=${AUTH0_DOMAIN}"
-          railway variables --service backend --set "AUTH0_AUDIENCE=${AUTH0_AUDIENCE}"
-          railway variables --service backend --set "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}"
-          railway variables --service backend --set "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}"
-          railway variables --service backend --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}"
-          railway variables --service backend --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
+          railway variables --service backend \
+            --set "DATABASE_URL=${DATABASE_URL}" \
+            --set "REDIS_URL=${REDIS_URL}" \
+            --set "R2_ENDPOINT=${R2_ENDPOINT}" \
+            --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}" \
+            --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}" \
+            --set "R2_BUCKET_NAME=${R2_BUCKET_NAME}" \
+            --set "SECRET_KEY=${SECRET_KEY}" \
+            --set "IP_HASH_SALT=${IP_HASH_SALT}" \
+            --set "ENVIRONMENT=production" \
+            --set "AUTH0_DOMAIN=${AUTH0_DOMAIN}" \
+            --set "AUTH0_AUDIENCE=${AUTH0_AUDIENCE}" \
+            --set "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" \
+            --set "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" \
+            --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}" \
+            --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
           
-          # Frontend環境変数設定
+          # Frontend環境変数設定（一括設定）
           echo "Setting frontend environment variables..."
-          railway variables --service frontend --set "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
-          railway variables --service frontend --set "NEXT_PUBLIC_ENVIRONMENT=production"
-          railway variables --service frontend --set "NEXT_PUBLIC_AUTH0_DOMAIN=${NEXT_PUBLIC_AUTH0_DOMAIN}"
-          railway variables --service frontend --set "NEXT_PUBLIC_AUTH0_CLIENT_ID=${NEXT_PUBLIC_AUTH0_CLIENT_ID}"
-          railway variables --service frontend --set "NEXT_PUBLIC_AUTH0_AUDIENCE=${NEXT_PUBLIC_AUTH0_AUDIENCE}"
+          railway variables --service frontend \
+            --set "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}" \
+            --set "NEXT_PUBLIC_ENVIRONMENT=production" \
+            --set "NEXT_PUBLIC_AUTH0_DOMAIN=${NEXT_PUBLIC_AUTH0_DOMAIN}" \
+            --set "NEXT_PUBLIC_AUTH0_CLIENT_ID=${NEXT_PUBLIC_AUTH0_CLIENT_ID}" \
+            --set "NEXT_PUBLIC_AUTH0_AUDIENCE=${NEXT_PUBLIC_AUTH0_AUDIENCE}"
           
-          # Worker環境変数設定
+          # Worker環境変数設定（一括設定）
           echo "Setting worker environment variables..."
-          railway variables --service worker --set "DATABASE_URL=${DATABASE_URL}"
-          railway variables --service worker --set "REDIS_URL=${REDIS_URL}"
-          railway variables --service worker --set "R2_ENDPOINT=${R2_ENDPOINT}"
-          railway variables --service worker --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}"
-          railway variables --service worker --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}"
-          railway variables --service worker --set "R2_BUCKET_NAME=${R2_BUCKET_NAME}"
-          railway variables --service worker --set "SECRET_KEY=${SECRET_KEY}"
-          railway variables --service worker --set "IP_HASH_SALT=${IP_HASH_SALT}"
-          railway variables --service worker --set "ENVIRONMENT=production"
-          railway variables --service worker --set "AUTH0_DOMAIN=${AUTH0_DOMAIN}"
-          railway variables --service worker --set "AUTH0_AUDIENCE=${AUTH0_AUDIENCE}"
-          railway variables --service worker --set "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}"
-          railway variables --service worker --set "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}"
-          railway variables --service worker --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}"
-          railway variables --service worker --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
+          railway variables --service worker \
+            --set "DATABASE_URL=${DATABASE_URL}" \
+            --set "REDIS_URL=${REDIS_URL}" \
+            --set "R2_ENDPOINT=${R2_ENDPOINT}" \
+            --set "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}" \
+            --set "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}" \
+            --set "R2_BUCKET_NAME=${R2_BUCKET_NAME}" \
+            --set "SECRET_KEY=${SECRET_KEY}" \
+            --set "IP_HASH_SALT=${IP_HASH_SALT}" \
+            --set "ENVIRONMENT=production" \
+            --set "AUTH0_DOMAIN=${AUTH0_DOMAIN}" \
+            --set "AUTH0_AUDIENCE=${AUTH0_AUDIENCE}" \
+            --set "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" \
+            --set "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" \
+            --set "STRIPE_PRO_PRICE_ID=${STRIPE_PRO_PRICE_ID}" \
+            --set "STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}"
 
       - name: Deploy to Railway Services
         run: |
