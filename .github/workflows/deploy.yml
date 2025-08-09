@@ -2,6 +2,7 @@ name: Deploy to Railway
 
 on:
   push:
+  workflow_dispatch:
     # branches: [ main, develop ]
   # pull_request:
   #   branches: [ main ]
