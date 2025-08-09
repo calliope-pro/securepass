@@ -11,7 +11,6 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
     environment: MVP  # GitHub Environmentを指定
     
     env:
@@ -65,25 +64,25 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
-          # Railway API を使って直接サービス作成を試行
-          echo "Starting deployment for project $RAILWAY_PROJECT_ID..."
-          echo "Attempting direct service creation via Railway API..."
+      - name: Install Railway CLI and Deploy
+        run: |
+          # Railway CLIをインストール
+          npm install -g @railway/cli@latest
           
-          # Railway API でサービス作成（curl使用）
-          echo "Creating backend service via API..."
-          curl -X POST \
-            -H "Authorization: Bearer $RAILWAY_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"name": "backend", "projectId": "'$RAILWAY_PROJECT_ID'"}' \
-            https://backboard.railway.com/graphql || echo "Backend service creation failed"
-            
-          # 少し待機
-          sleep 5
+          echo "Railway CLI version:"
+          railway --version
           
-          # 作成されたサービスにデプロイを試行
-          echo "Attempting deployment..."
-          cd backend && railway up --detach && cd .. || echo "Backend deployment failed"
-          cd frontend && railway up --detach && cd .. || echo "Frontend deployment failed"  
-          cd backend && railway up --detach && cd .. || echo "Worker deployment failed"
+          echo "Deploying to existing Railway services..."
+          echo "Note: Services must be created manually in Railway dashboard first"
           
-          echo "Service creation and deployment attempted"
+          # 各サービスをデプロイ
+          echo "Deploying backend..."
+          cd backend && railway up --service backend --detach && cd .. || echo "Backend deployment failed - ensure 'backend' service exists in Railway"
+          
+          echo "Deploying frontend..."
+          cd frontend && railway up --service frontend --detach && cd .. || echo "Frontend deployment failed - ensure 'frontend' service exists in Railway"
+          
+          echo "Deploying worker..."  
+          cd backend && railway up --service worker --detach && cd .. || echo "Worker deployment failed - ensure 'worker' service exists in Railway"
+          
+          echo "All deployments completed"
