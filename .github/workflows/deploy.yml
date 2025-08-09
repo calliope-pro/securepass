@@ -65,22 +65,69 @@ jobs:
             echo "RAILWAY_PROJECT_ID is set: $RAILWAY_PROJECT_ID"
           fi
           
+      - name: Configure Environment Variables
+        run: |
+          echo "Configuring environment variables for each service..."
+          
+          # Backend環境変数設定
+          echo "Setting backend environment variables..."
+          railway variables set DATABASE_URL='${{Postgres.DATABASE_URL}}' --service backend
+          railway variables set REDIS_URL='${{Redis.REDIS_URL}}' --service backend
+          railway variables set R2_ENDPOINT='${{ secrets.R2_ENDPOINT }}' --service backend
+          railway variables set R2_ACCESS_KEY_ID='${{ secrets.R2_ACCESS_KEY_ID }}' --service backend
+          railway variables set R2_SECRET_ACCESS_KEY='${{ secrets.R2_SECRET_ACCESS_KEY }}' --service backend
+          railway variables set R2_BUCKET_NAME='${{ secrets.R2_BUCKET_NAME }}' --service backend
+          railway variables set SECRET_KEY='${{ secrets.SECRET_KEY }}' --service backend
+          railway variables set IP_HASH_SALT='${{ secrets.IP_HASH_SALT }}' --service backend
+          railway variables set ENVIRONMENT='production' --service backend
+          railway variables set AUTH0_DOMAIN='${{ secrets.AUTH0_DOMAIN }}' --service backend
+          railway variables set AUTH0_AUDIENCE='${{ secrets.AUTH0_AUDIENCE }}' --service backend
+          railway variables set STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}' --service backend
+          railway variables set STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}' --service backend
+          railway variables set STRIPE_PRO_PRICE_ID='${{ secrets.STRIPE_PRO_PRICE_ID }}' --service backend
+          railway variables set STRIPE_ENTERPRISE_PRICE_ID='${{ secrets.STRIPE_ENTERPRISE_PRICE_ID }}' --service backend
+          
+          # Frontend環境変数設定
+          echo "Setting frontend environment variables..."
+          railway variables set NEXT_PUBLIC_API_URL='${{ secrets.NEXT_PUBLIC_API_URL }}' --service frontend
+          railway variables set NEXT_PUBLIC_ENVIRONMENT='production' --service frontend
+          railway variables set NEXT_PUBLIC_AUTH0_DOMAIN='${{ secrets.NEXT_PUBLIC_AUTH0_DOMAIN }}' --service frontend
+          railway variables set NEXT_PUBLIC_AUTH0_CLIENT_ID='${{ secrets.NEXT_PUBLIC_AUTH0_CLIENT_ID }}' --service frontend
+          railway variables set NEXT_PUBLIC_AUTH0_AUDIENCE='${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}' --service frontend
+          
+          # Worker環境変数設定
+          echo "Setting worker environment variables..."
+          railway variables set DATABASE_URL='${{Postgres.DATABASE_URL}}' --service worker
+          railway variables set REDIS_URL='${{Redis.REDIS_URL}}' --service worker
+          railway variables set R2_ENDPOINT='${{ secrets.R2_ENDPOINT }}' --service worker
+          railway variables set R2_ACCESS_KEY_ID='${{ secrets.R2_ACCESS_KEY_ID }}' --service worker
+          railway variables set R2_SECRET_ACCESS_KEY='${{ secrets.R2_SECRET_ACCESS_KEY }}' --service worker
+          railway variables set R2_BUCKET_NAME='${{ secrets.R2_BUCKET_NAME }}' --service worker
+          railway variables set SECRET_KEY='${{ secrets.SECRET_KEY }}' --service worker
+          railway variables set IP_HASH_SALT='${{ secrets.IP_HASH_SALT }}' --service worker
+          railway variables set ENVIRONMENT='production' --service worker
+          railway variables set AUTH0_DOMAIN='${{ secrets.AUTH0_DOMAIN }}' --service worker
+          railway variables set AUTH0_AUDIENCE='${{ secrets.AUTH0_AUDIENCE }}' --service worker
+          railway variables set STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}' --service worker
+          railway variables set STRIPE_WEBHOOK_SECRET='${{ secrets.STRIPE_WEBHOOK_SECRET }}' --service worker
+          railway variables set STRIPE_PRO_PRICE_ID='${{ secrets.STRIPE_PRO_PRICE_ID }}' --service worker
+          railway variables set STRIPE_ENTERPRISE_PRICE_ID='${{ secrets.STRIPE_ENTERPRISE_PRICE_ID }}' --service worker
+
       - name: Deploy to Railway Services
         run: |
           echo "Railway CLI version:"
           railway --version
           
           echo "Deploying to existing Railway services..."
-          echo "Note: Services must be created manually in Railway dashboard first"
           
           # 各サービスをデプロイ
           echo "Deploying backend..."
-          cd backend && railway up --service backend --detach && cd .. || echo "Backend deployment failed - ensure 'backend' service exists in Railway"
+          cd backend && railway up --service backend --detach && cd .. || echo "Backend deployment failed"
           
           echo "Deploying frontend..."
-          cd frontend && railway up --service frontend --detach && cd .. || echo "Frontend deployment failed - ensure 'frontend' service exists in Railway"
+          cd frontend && railway up --service frontend --detach && cd .. || echo "Frontend deployment failed"
           
           echo "Deploying worker..."  
-          cd backend && railway up --service worker --detach && cd .. || echo "Worker deployment failed - ensure 'worker' service exists in Railway"
+          cd backend && railway up --service worker --detach && cd .. || echo "Worker deployment failed"
           
           echo "All deployments completed"
